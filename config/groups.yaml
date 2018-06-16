@@ -1,0 +1,33 @@
+
+cover_view:
+    name: Árnyékolók
+    view: yes
+    entities:
+        - cover.mind
+        - cover.nappal
+        - cover.utcafront
+        - cover.kelet
+        - cover.del
+        - cover.nyugat
+        - cover.k_d_ny
+        - cover.redonyok
+        - cover.zsaluziak
+        - group.cover_roller_shutters
+        - group.cover_venetian_blinds
+    
+cover_roller_shutters:
+    name: Redőnyök
+    view: no
+    entities:
+        - cover.zuhanyzo
+        - cover.vendeg
+
+cover_venetian_blinds:
+    name: Zsaluziák
+    view: no
+    entities:
+        - cover.gergo
+        - cover.furdo
+        - cover.halo
+        - cover.nappali
+        - cover.etkezo

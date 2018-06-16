@@ -1,0 +1,97 @@
+  - platform: elero
+    covers:
+        bathroom_small:
+            name: Zuhanyzó
+            channel: 1
+            device_class: window # roller shutter
+        guestroom:
+            name: Vendég
+            channel: 2
+            device_class: window # roller shutter
+        childrenroom:
+            name: Gergő
+            channel: 3
+            device_class: window # venetian blind
+        bathroom_big:
+            name: Fürdő
+            channel: 4
+            device_class: window # venetian blind
+        bedroom:
+            name: Haló
+            channel: 5
+            device_class: window # venetian blind
+        livingroom:
+            name: Nappali
+            channel: 6
+            device_class: window # venetian blind
+        diningroom:
+            name: Étkező
+            channel: 7
+            device_class: window # venetian blind
+
+  - platform: group
+    name: Redőnyök
+    entities:
+        - cover.zuhanyzo
+        - cover.vendeg
+
+  - platform: group
+    name: Zsaluziák
+    entities:
+        - cover.gergo
+        - cover.furdo
+        - cover.halo
+        - cover.nappali
+        - cover.etkezo
+
+  - platform: group
+    name: Mind
+    entities:
+        - cover.zuhanyzo
+        - cover.vendeg
+        - cover.gergo
+        - cover.furdo
+        - cover.halo
+        - cover.nappali
+        - cover.etkezo
+
+  - platform: group
+    name: Nappal
+    entities:
+        - cover.zuhanyzo
+        - cover.gergo
+        - cover.halo
+        - cover.nappali
+        - cover.etkezo
+
+  - platform: group
+    name: Utcafront
+    entities:
+        - cover.zuhanyzo
+        - cover.vendeg
+
+  - platform: group
+    name: Kelet
+    entities:
+        - cover.gergo
+
+  - platform: group
+    name: Dél
+    entities:
+        - cover.furdo
+        - cover.halo
+        - cover.nappali
+
+  - platform: group
+    name: Nyugat
+    entities:
+        - cover.etkezo
+
+  - platform: group
+    name: K-D-Ny
+    entities:
+        - cover.gergo
+        - cover.furdo
+        - cover.halo
+        - cover.nappali
+        - cover.etkezo
