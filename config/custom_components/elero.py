@@ -1,10 +1,10 @@
+# -*- coding: utf-8 -*-
 """
 Support for Elero.
 
 For more details about this component, please refer to the documentation at
 https://home-assistant.io/components/elero/
 """
-
 import logging
 import serial
 
@@ -19,14 +19,14 @@ _LOGGER = logging.getLogger(__name__)
 
 DEVICE = None
 
-DOMAIN = 'elero'
+DOMAIN = "elero"
 
-CONF_BAUDRATE = 'baudrate'
-CONF_BYTESIZE = 'bytesize'
-CONF_PARITY = 'parity'
-CONF_STOPBITS = 'stopbits'
+CONF_BAUDRATE = "baudrate"
+CONF_BYTESIZE = "bytesize"
+CONF_PARITY = "parity"
+CONF_STOPBITS = "stopbits"
 
-DEFAULT_PORT = '/dev/ttyUSB0'
+DEFAULT_PORT = "/dev/ttyUSB0"
 DEFAULT_BAUDRATE = 38400
 DEFAULT_BYTESIZE = serial.EIGHTBITS
 DEFAULT_PARITY = serial.PARITY_NONE
@@ -44,11 +44,12 @@ def setup(hass, config):
     try:
         ser = serial.Serial(port, baudrate, bytesize, parity, stopbits)
     except serial.serialutil.SerialException as exc:
-        _LOGGER.exception("Unable to open serial port for Elero: %s", exc)
+        _LOGGER.exception(
+            "Unable to open serial port for Elero USB Stick: %s", exc)
         return False
-    
+
     global DEVICE
-    DEVICE = EleroCenteroUSBTransmitter(ser)
+    DEVICE = EleroTransmitter(ser)
 
     def close_serial_port():
         """Close the serial port."""
@@ -59,29 +60,27 @@ def setup(hass, config):
     return True
 
 
-class EleroCenteroUSBTransmitter(object):
+class EleroTransmitter(object):
     """Representation of an Elero Centero USB Transmitter Stick."""
     
-    def __init__(self, ser):
+    def __init__(self, transmitter):
         """Initialize the usb stick."""
-        self._ser = ser
-        
+        self._transmitter = transmitter
+    
     def serial_open(self):
         """Open the serial port. """
-        self._ser.open()
-        
+        self._transmitter.open()
+    
     def serial_close(self):
         """ Close the serial port."""
-        self._ser.close()
-        
+        self._transmitter.close()
+    
     def serial_read(self):
         """Read the serial port."""
-        r = self._ser.read(self._ser.in_waiting)
-        
-        return r
+        return self._transmitter.read(self._transmitter.in_waiting)
     
     def serial_write(self, data):
         """Write the serial port."""
-        if not self._ser.isOpen():
+        if not self._transmitter.isOpen():
             self.serial_open()
-        self._ser.write(data)
+        return self._transmitter.write(data)
