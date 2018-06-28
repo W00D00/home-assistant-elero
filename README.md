@@ -16,13 +16,12 @@ Python Serial Port Extension [pyserial](https://pypi.org/project/pyserial/)
 
 
 # Elero Centero
-Controls for tubular motors, venetian blinds, electrical devices.
+Controls for tubular motors, roller shutters, venetian blinds, electrical devices.
 
-Features
-Roller shutters, Venetian blinds, Light systems, Radiant heaters
 
 [Elero Centero](https://www.elero.com/en/products/control-systems/centero/)
-[USB Transmitter Stick](https://www.markisen-kauf.de/images/product_images/popup_images/6780.jpg)
+
+![USB Transmitter Stick](https://www.markisen-kauf.de/images/product_images/popup_images/6780.jpg)
 
 # Install
 Just copy the "custom_components" folder into your hassio "../config/custom_components/" folder.
