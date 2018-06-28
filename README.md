@@ -1,5 +1,5 @@
 ![Elero Logo](https://media.glassdoor.com/sqll/1113977/elero-squarelogo-1450275790841.png)
-![Home Assistant](https://www.home-assistant.io/)
+![Home Assistant](https://d33wubrfki0l68.cloudfront.net/075995fe17a5351e2699b2dd878652ec4f1d8654/8bfdd/demo/favicon-192x192.png)
 
 # home-assistance-elero
 This Python library is a custom component to the [Home Assistant](https://www.home-assistant.io/) open-source home automation platform.
