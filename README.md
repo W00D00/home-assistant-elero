@@ -1,8 +1,8 @@
 ![Elero Logo](https://media.glassdoor.com/sqll/1113977/elero-squarelogo-1450275790841.png)
+![Home Assistant](https://www.home-assistant.io/)
 
 # home-assistance-elero
-This Python library is a component to the Home Assistante framework.
-extracts data from NIBE Uplink™ site or its API.
+This Python library is a custom component to the [Home Assistant](https://www.home-assistant.io/) open-source home automation platform.
 
 # Authors
 home-assistance-elero was written by [István Szirtes](https://github.com/W00D00/home-assistance-elero)
@@ -10,6 +10,7 @@ home-assistance-elero was written by [István Szirtes](https://github.com/W00D00
 # Requirements
 Python 3.x
 Recommended Python 3.6
+Python Serial Port Extension [pyserial](https://pypi.org/project/pyserial/)
 
 # Elero Centero
 Controls for tubular motors, venetian blinds, electrical devices.
