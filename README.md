@@ -9,8 +9,11 @@ home-assistance-elero was written by [István Szirtes](https://github.com/W00D00
 
 # Requirements
 Python 3.x
+
 Recommended Python 3.6
+
 Python Serial Port Extension [pyserial](https://pypi.org/project/pyserial/)
+
 
 # Elero Centero
 Controls for tubular motors, venetian blinds, electrical devices.
