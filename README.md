@@ -55,31 +55,31 @@ cover:
   - platform: elero
     covers:
       bathroom_small:
-            name: Shower
-            channel: 1
-            device_class: window # roller shutter
-        guestroom:
-            name: Guest room
-            channel: 2
-            device_class: window # roller shutter
-        childrenroom:
-            name: George
-            channel: 3
-            device_class: window # venetian blind
-        bathroom_big:
-            name: Bathroom
-            channel: 4
-            device_class: window # venetian blind
-	- platform: group
-      name: Roller shutters
-      entities:
-		- cover.shower
-        - cover.guest_room
-	- platform: group
-      name: Venetian blinds
-      entities:
-        - cover.george
-        - cover.bathroom
+        name: Shower
+	channel: 1
+        device_class: window # roller shutter
+      guestroom:
+        name: Guest room
+        channel: 2
+        device_class: window # roller shutter
+      childrenroom:
+        name: George
+        channel: 3
+        device_class: window # venetian blind
+      bathroom_big:
+        name: Bathroom
+        channel: 4
+        device_class: window # venetian blind
+  - platform: group
+    name: Roller shutters
+    entities:
+      - cover.shower
+      - cover.guest_room
+  - platform: group
+    name: Venetian blinds
+    entities:
+      - cover.george
+      - cover.bathroom
 ```
 
 
