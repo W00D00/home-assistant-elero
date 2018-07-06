@@ -28,12 +28,11 @@ To enable Elero Covers in your installation, add the following to your `configur
 ```yaml
 # Example configuration.yaml entry
 cover:
-	- platform: elero
-	  covers:
-		<name of your cover or place or room>:
-			name: <name of your cover device>
-			channel: <channel number of your cover device>
-			device_class: <type of your cover device>
+  - platform: elero
+    covers:<name of your cover or place or room>:
+      name: <name of your cover device>
+      channel: <channel number of your cover device>
+      device_class: <type of your cover device>
 ```
 
 
@@ -41,10 +40,10 @@ To create `Cover Groups` in your installation, add the following to your `config
 
 ```yaml
 # Example configuration.yaml entry
-	- platform: group
-	  name: <name of your cover group>
-	  entities:
-		- cover.<name of your cover device>
+  - platform: group
+    name: <name of your cover group>
+    entities:
+      - cover.<name of your cover device>
 ```
 
 
@@ -53,9 +52,9 @@ To create `Cover Groups` in your installation, add the following to your `config
 ```yaml
 # Example configuration.yaml entry
 cover:
-	- platform: elero
-      covers:
-        bathroom_small:
+  - platform: elero
+    covers:
+      bathroom_small:
             name: Shower
             channel: 1
             device_class: window # roller shutter
