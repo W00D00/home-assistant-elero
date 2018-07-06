@@ -56,7 +56,7 @@ cover:
     covers:
       bathroom_small:
         name: Shower
-	channel: 1
+        channel: 1
         device_class: window # roller shutter
       guestroom:
         name: Guest room
