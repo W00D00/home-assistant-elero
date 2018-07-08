@@ -22,6 +22,15 @@ The ELero Transmitter Stick is a 15-channel handheld radio transmitter for bidir
 
 
 ## {% linkable_title Configuration %}
+To configure Elero Transmitter stick in your installation, add the following to your `configuration.yaml` file:
+
+```yaml
+# Example configuration.yaml entry
+elero:
+  port: '/dev/ttyUSB0'
+  baudrate: 38400
+```
+
 
 To enable Elero Covers in your installation, add the following to your `configuration.yaml` file:
 
