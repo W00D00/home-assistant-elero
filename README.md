@@ -27,6 +27,42 @@ To configure Elero Transmitter stick in your installation, add the following to 
 ```yaml
 # Example configuration.yaml entry
 elero:
+```
+
+{% configuration %}
+  port:
+    description: Name of the serial port to the Elero Transmitter Stick.
+    required: false
+    type: string
+    default: "/dev/ttyUSB0"
+  baudrate:
+    description: You configure BaudRate as bits per second.
+    required: false
+    type: integer
+    default: 38400
+  bytesize:
+    description: Number of data bits.
+    required: false
+    type: integer
+    default: 8
+  parity:
+    description:  Enable parity checking.
+    required: false
+    type: string
+    default: "None"
+  stopbits:
+    description: Number of stop bits.
+    required: false
+    type: integer
+    default: 1
+{% endconfiguration %}
+
+
+{% Example configuration: %}
+
+```yaml
+# Example configuration.yaml entry
+elero:
   port: '/dev/ttyUSB0'
   baudrate: 38400
 ```
@@ -90,35 +126,6 @@ cover:
       - cover.george
       - cover.bathroom
 ```
-
-
-{% configuration %}
-  port:
-    description: Name of the serial port to the Elero Transmitter Stick.
-    required: false
-    type: string
-    default: "/dev/ttyUSB0"
-  baudrate:
-    description: You configure BaudRate as bits per second.
-    required: false
-    type: integer
-    default: 38400
-  bytesize:
-    description: Number of data bits.
-    required: false
-    type: integer
-    default: 8
-  parity:
-    description:  Enable parity checking.
-    required: false
-    type: string
-    default: "None"
-  stopbits:
-    description: Number of stop bits.
-    required: false
-    type: integer
-    default: 1
-{% endconfiguration %}
 
 
 ## {% linkable_title Functionality %}
