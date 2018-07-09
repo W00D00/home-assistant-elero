@@ -13,8 +13,10 @@ from homeassistant.const import (CONF_COVERS, CONF_NAME, CONF_DEVICE_CLASS,
                                  STATE_CLOSED, STATE_CLOSING, 
                                  STATE_UNKNOWN, STATE_PROBLEM
                                  )
-from homeassistant.components.cover import (
-    CoverDevice, SUPPORT_OPEN, SUPPORT_CLOSE, SUPPORT_STOP)
+from homeassistant.components.cover import (CoverDevice, 
+    SUPPORT_OPEN, SUPPORT_CLOSE, SUPPORT_STOP, SUPPORT_SET_POSITION, 
+    SUPPORT_OPEN_TILT, SUPPORT_CLOSE_TILT, SUPPORT_STOP_TILT, 
+    SUPPORT_SET_TILT_POSITION)
 from homeassistant.components.cover import CoverDevice
 from homeassistant.helpers.event import track_utc_time_change
 
@@ -182,7 +184,7 @@ class EleroCover(CoverDevice):
         
         False if entity pushes its state to HA.
         """
-        return True
+        return False
 
     @property
     def available(self):
@@ -274,16 +276,22 @@ class EleroCover(CoverDevice):
         _LOGGER.info("Current status of the channel %s is %s", self._channel, 
                       self._state)
 
-    def _start_watcher(self, command):
+    def _start_watcher(self):
         """Start watcher."""
-        _LOGGER.debug("Starting Watcher for command: %s ", command)
         if self._unsub_listener_cover is None:
             self._unsub_listener_cover = track_utc_time_change(
                 self.hass, self._check_state)
 
+    def _stop_watcher(self):
+        """Stop watcher."""
+        if self._unsub_listener_cover is not None:
+            self._unsub_listener_cover()
+            self._unsub_listener_cover = None
+
     def _check_state(self, now):
         """Check the state of the service during an operation."""
-        self.schedule_update_ha_state(True)
+        self.update()
+        self.schedule_update_ha_state()
 
     """
     
@@ -295,18 +303,18 @@ class EleroCover(CoverDevice):
         """Close the cover."""
         if self._state not in [STATE_CLOSED, STATE_CLOSING]:
             self._down()
-            self._start_watcher('close')
+            self._start_watcher()
 
     def open_cover(self, **kwargs):
         """Open the cover."""
         if self._state not in [STATE_OPEN, STATE_OPENING]:
             self._up()
-            self._start_watcher('open')
+            self._start_watcher()
 
     def stop_cover(self, **kwargs):
         """Stop the cover."""
         self._stop()
-        self._start_watcher('stop')
+        self._stop_watcher()
 
     """
     

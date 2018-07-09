@@ -17,6 +17,8 @@ import homeassistant.helpers.config_validation as cv
 
 _LOGGER = logging.getLogger(__name__)
 
+REQUIREMENTS = ['pyserial==3.4']
+
 DEVICE = None
 
 DOMAIN = "elero"
