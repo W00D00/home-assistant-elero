@@ -162,7 +162,7 @@ cover:
                   - stop
 ```
 
-## Tilt functionality
+## Configuration of the tilt functionality
 The tilt can be configured as `stepper` or `continuous`.
 
 **The `stepper` mode is the default mode.**
