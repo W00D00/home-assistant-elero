@@ -2,7 +2,7 @@
 > ## 🛠 Status: In Development
 > This lib is currently in development. I encourage you to use it and give me your feedback, but there are things that haven't been finalized yet and you can expect some changes.
 
-![Elero Logo](elero.png)
+![Elero Logo](elero.png) ![Home Assistant Logo](home_assistant_logo.png)
 
 Elero Python lib to the Home Assistant home automation platform
 ===============================================================
