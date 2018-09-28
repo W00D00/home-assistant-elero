@@ -1,0 +1,10 @@
+
+# Covers
+    - alias: 'Close the covers before sunset'
+      trigger:
+        platform: sun
+        event: sunset
+        offset: '-00:30:00'
+      action:
+        service: cover.close_cover
+        entity_id: cover.nappal

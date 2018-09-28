@@ -1,0 +1,12 @@
+
+# Cover
+cover: !include covers.yaml
+
+# Elero
+elero:
+
+# Group
+group: !include groups.yaml
+
+# Weather prediction
+sensor: !include sensors.yaml

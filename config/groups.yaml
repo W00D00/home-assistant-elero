@@ -1,7 +1,51 @@
+﻿
+#####################
+# Main View #
+#####################
+default_view:
+    name: Otthon
+    view: yes
+    icon: mdi:home
+    entities:
+        - group.sun_group
+
+# Sun
+sun_group:
+    name: Időjárás adatok (Sun)
+    view: no
+    entities:
+        - sun.sun
+        - sensor.solar_azimuth
+        - sensor.solar_elevation
+
+#####################
+# Cover System View #
+#####################
 
 cover_view:
     name: Árnyékolók
     view: yes
+    entities:
+        - elero.elero
+        - group.cover_all_covers_group
+        - group.cover_all_groups_group
+        - automation.close_the_covers_before_sunset
+
+cover_all_covers_group:
+    name: Helyiségek
+    view: no
+    entities:
+        - cover.zuhanyzo
+        - cover.vendeg
+        - cover.gergo
+        - cover.furdo
+        - cover.halo
+        - cover.nappali
+        - cover.etkezo
+        
+cover_all_groups_group:
+    name: Csoportok
+    view: no
     entities:
         - cover.mind
         - cover.nappal
@@ -9,25 +53,4 @@ cover_view:
         - cover.kelet
         - cover.del
         - cover.nyugat
-        - cover.k_d_ny
-        - cover.redonyok
-        - cover.zsaluziak
-        - group.cover_roller_shutters
-        - group.cover_venetian_blinds
-    
-cover_roller_shutters:
-    name: Redőnyök
-    view: no
-    entities:
-        - cover.zuhanyzo
-        - cover.vendeg
-
-cover_venetian_blinds:
-    name: Zsaluziák
-    view: no
-    entities:
-        - cover.gergo
-        - cover.furdo
-        - cover.halo
-        - cover.nappali
-        - cover.etkezo
+        - cover.kdny

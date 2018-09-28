@@ -1,51 +1,69 @@
   - platform: elero
     covers:
         bathroom_small:
-            name: Zuhanyzó
+            name: Zuhanyzo
             channel: 1
-            device_class: window # roller shutter
+            device_class: roller shutter
+            supported_features:
+                - up
+                - down
+                - stop
         guestroom:
-            name: Vendég
+            name: Vendeg
             channel: 2
-            device_class: window # roller shutter
+            device_class: roller shutter
+            supported_features:
+                - up
+                - down
+                - stop
         childrenroom:
-            name: Gergő
+            name: Gergo
             channel: 3
-            device_class: window # venetian blind
+            device_class: venetian blind
+            supported_features:
+                - up
+                - down
+                - stop
+                - tilt
         bathroom_big:
-            name: Fürdő
+            name: Furdo
             channel: 4
-            device_class: window # venetian blind
+            device_class: venetian blind
+            supported_features:
+                - up
+                - down
+                - stop
+                - tilt
         bedroom:
-            name: Haló
+            name: Halo
             channel: 5
-            device_class: window # venetian blind
+            device_class: venetian blind
+            supported_features:
+                - up
+                - down
+                - stop
+                - tilt
         livingroom:
             name: Nappali
             channel: 6
-            device_class: window # venetian blind
+            device_class: venetian blind
+            supported_features:
+                - up
+                - down
+                - stop
+                - tilt
         diningroom:
-            name: Étkező
+            name: Etkezo
             channel: 7
-            device_class: window # venetian blind
+            device_class: venetian blind
+            supported_features:
+                - up
+                - down
+                - stop
+                - tilt
 
   - platform: group
-    name: Redőnyök
-    entities:
-        - cover.zuhanyzo
-        - cover.vendeg
-
-  - platform: group
-    name: Zsaluziák
-    entities:
-        - cover.gergo
-        - cover.furdo
-        - cover.halo
-        - cover.nappali
-        - cover.etkezo
-
-  - platform: group
-    name: Mind
+    name: "Mind"
     entities:
         - cover.zuhanyzo
         - cover.vendeg
@@ -56,7 +74,7 @@
         - cover.etkezo
 
   - platform: group
-    name: Nappal
+    name: "Nappal"
     entities:
         - cover.zuhanyzo
         - cover.gergo
@@ -65,30 +83,31 @@
         - cover.etkezo
 
   - platform: group
-    name: Utcafront
+    name: "Utcafront"
     entities:
         - cover.zuhanyzo
         - cover.vendeg
 
   - platform: group
-    name: Kelet
+    name: "Kelet"
     entities:
         - cover.gergo
 
   - platform: group
-    name: Dél
+    name: "Del"
     entities:
         - cover.furdo
         - cover.halo
         - cover.nappali
 
   - platform: group
-    name: Nyugat
+    name: "Nyugat"
     entities:
+        - cover.nappali
         - cover.etkezo
 
   - platform: group
-    name: K-D-Ny
+    name: "K-D-Ny"
     entities:
         - cover.gergo
         - cover.furdo
