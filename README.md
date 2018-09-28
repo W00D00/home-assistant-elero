@@ -261,4 +261,6 @@ It is possible to specify triggers for automation of your covers.
 
 # Known issues:
 - tilt functionality is in alpha state
-- ...
+- Unknown info respons: no response
+- Unhandled response: 'Unknown info respons'
+
