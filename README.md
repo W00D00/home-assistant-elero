@@ -257,12 +257,21 @@ It is possible to specify triggers for automation of your covers.
 ```
 ---
 
-**If you have any question or you faced with trouble, do not hesitate to contact me, all comments, insight, criticism is welcomed!**
+# Waiting for implementation
 
----
+- tilt handling (ongoing)
+- set position up-down, tilt
+- intermediate positions handling
+- ventilation / turning positions handling
 
 # Known issues:
+
 - tilt functionality is in alpha state
 - Unknown info respons: no response
 - Unhandled response: 'Unknown info respons'
 
+---
+
+**If you have any question or you faced with trouble, do not hesitate to contact me, all comments, insight, criticism is welcomed!**
+
+---
