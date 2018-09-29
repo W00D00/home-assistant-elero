@@ -247,12 +247,12 @@ cover:
 ---
 
 # Installation of the lib
-Just copy the `custom_components` folder into your hassio `../config/custom_components/` folder.
+Just copy the contents of the `custom_components` folder into your Home Assistant `../config/custom_components/` folder.
 
-Configurate your `/config/configuration.yaml` file and its all linked files like `covers` and `groups`, etc. what you did and filled. Restart the hass and enjoy.
+Configurate your `/config/configuration.yaml` file and its all linked files like `covers` and `groups`, etc. what you did and filled. Restart your Home Assistant server and enjoy.
 
 ## Example config files
-You can find my example files in the 'config' folder.
+You can find my example files in the 'config' folder as a starting point for your Elero platform and component setup like a cover.
 
 ---------------
 
