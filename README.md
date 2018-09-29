@@ -280,6 +280,7 @@ It is possible to specify triggers for automation of your covers.
 - set position up-down, tilt
 - intermediate positions handling
 - ventilation / turning positions handling
+- more than one usb transmitter handling
 
 # Known issues:
 
