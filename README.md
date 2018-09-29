@@ -19,6 +19,23 @@ The Elero Transmitter Stick is a 15-channel handheld radio transmitter for bidir
 
 To use the receiver control of the Home Assistant, at least one receiver must be taught-in into the Elero Transmitter Stick. For further details of the learning procedure please visit the [Elero's Downloads webpage](https://www.elero.com/en/downloads-service/downloads/) and find the [Centero Operation instruction](https://www.elero.com/en/downloads-service/downloads/?tx_avelero_downloads%5Bdownload%5D=319&tx_avelero_downloads%5Baction%5D=download&cHash=5cf4212966ff0d58470d8cc9aa029066)
 
+# Elero features
+
+The Elero Transmitter stick supports the following Elero device features:
+- up*
+- down*
+- stop*
+- tilt**
+    - open**
+    - close**
+    - stop**
+- intermediate position**
+- ventilation / turning position**
+
+*implemented
+
+**not implemented or not functional fully/correctly
+
 ---
 
 # Configuration of Elero platform
