@@ -7,8 +7,8 @@ Unittesting the Elero lib.
 import unittest
 from unittest.mock import Mock
 
-from custom_components import elero as elero_component
-from custom_components.cover import elero as elero_platform
+from custom_components import elero as elero_platform
+from custom_components.cover import elero as elero_component
 
 
 class EleroUnittest(unittest.TestCase):
@@ -16,57 +16,142 @@ class EleroUnittest(unittest.TestCase):
 
     def setUp(self):
         """Seting up the unittest."""
-        self.port = Mock()
-        self.transmitter = elero_component.EleroTransmitter(self.port,
-                                                            100, 2, 100)
-        self.cover_device = elero_component.EleroDevice(1)
-
-    def test_check(self):
-        """Testing the CHECK command.
-
-        self.port.read = Mock(return_value="my string")
-
-        self.assertEqual(self.transmitter.serial_read(6), "my string")
-        """
-        pass
-
-    def test_info(self):
-        """Testing the INFO command."""
-        pass
-
-    def test_up(self):
-        """Testing the UP command."""
-        pass
-
-    def test_down(self):
-        """Testing the DOWN command."""
-        pass
-
-    def test_stop(self):
-        """Testing the STOP command."""
-        pass
-
-    def test_intermediate(self):
-        """Testing the INTERMEDIATE command."""
-        pass
-
-    def test_tilt(self):
-        """Testing the TILT command."""
-        pass
-
-    def test_ventilation(self):
-        """Testing the VENTILATION command."""
-        pass
+        self.cover_device = elero_platform.EleroDevice(1)
 
     def test_get_response(self):
-        """Testing the _get_response method."""
-        pass
+        """Testing the get_response method."""
+        self.cover_device._elero_transmitter = Mock()
+        self.cover_device._elero_transmitter.serial_read = Mock(
+            return_value='DEFAULT')
+        self.assertEqual(self.cover_device.get_response(0), 'DEFAULT')
 
-    def test_send_command(self):
-        """Testing the _send_command method."""
-        m = Mock()
-        m._send_command = Mock(return_value="my string")
-        self.assertEqual(m._send_command, "my strin")
+    def test_reset_response(self):
+        """Testing the _reset_response method."""
+        self.assertEqual(self.cover_device._reset_response(), None)
+        self.assertEqual(self.cover_device._response['bytes'], None)
+        self.assertEqual(self.cover_device._response['header'], None)
+        self.assertEqual(self.cover_device._response['length'], None)
+        self.assertEqual(self.cover_device._response['command'], None)
+        self.assertEqual(self.cover_device._response['ch_h'], None)
+        self.assertEqual(self.cover_device._response['ch_l'], None)
+        self.assertEqual(self.cover_device._response['chs'], None)
+        self.assertEqual(self.cover_device._response['info_data'], None)
+        self.assertEqual(self.cover_device._response['cs'], None)
+
+    def test_get_check_command(self):
+        """Testing the CHECK command."""
+        self.assertEqual(self.cover_device._get_check_command(),
+                         [170, 2, 74])
+
+    def test_get_info_command(self):
+        """Testing the INFO command."""
+        self.assertEqual(self.cover_device._get_info_command(),
+                         [170, 4, 78, 0, 1])
+
+    def test_get_up_command(self):
+        """Testing the UP command."""
+        self.assertEqual(self.cover_device._get_up_command(),
+                         [170, 5, 76, 0, 1, 32])
+
+    def test_get_down_command(self):
+        """Testing the DOWN command."""
+        self.assertEqual(self.cover_device._get_down_command(),
+                         [170, 5, 76, 0, 1, 64])
+
+    def test_get_stop_command(self):
+        """Testing the STOP command."""
+        self.assertEqual(self.cover_device._get_stop_command(),
+                         [170, 5, 76, 0, 1, 16])
+
+    def test_get_intermediate_command(self):
+        """Testing the INTERMEDIATE command."""
+        self.assertEqual(self.cover_device._get_intermediate_command(),
+                         [170, 5, 76, 0, 1, 68])
+
+    def test_get_tilt_command(self):
+        """Testing the TILT command."""
+        self.assertEqual(self.cover_device._get_tilt_command(),
+                         [170, 5, 76, 0, 1, 36])
+
+    def test_get_ventilation_command(self):
+        """Testing the VENTILATION command."""
+        self.assertEqual(self.cover_device._get_ventilation_command(),
+                         [170, 5, 76, 0, 1, 36])
+
+    def test_parse_response(self):
+        """Testing the parse_response method."""
+        # No response or serial data
+        ser_resp = b''
+        self.assertEqual(self.cover_device.parse_response(ser_resp), None)
+        self.assertEqual(self.cover_device._response['bytes'],
+                         elero_platform.NO_SERIAL_RESPONSE)
+        self.assertEqual(self.cover_device._response['header'], None)
+        self.assertEqual(self.cover_device._response['length'], None)
+        self.assertEqual(self.cover_device._response['command'], None)
+        self.assertEqual(self.cover_device._response['ch_h'], None)
+        self.assertEqual(self.cover_device._response['ch_l'], None)
+        self.assertEqual(self.cover_device._response['chs'], None)
+        self.assertEqual(self.cover_device._response['info_data'],
+                         elero_platform.INFO_NO_INFORMATION)
+        self.assertEqual(self.cover_device._response['cs'], None)
+
+        # Common and Easy Confirmed (the answer on Easy Check) - 6
+        ser_resp = b'\xAA\x04\x4B\x00\x6F\x98'
+        self.assertEqual(self.cover_device.parse_response(ser_resp), None)
+        self.assertEqual(self.cover_device._response['bytes'], ser_resp)
+        self.assertEqual(self.cover_device._response['header'], 170)
+        self.assertEqual(self.cover_device._response['length'], 4)
+        self.assertEqual(self.cover_device._response['command'], 75)
+        self.assertEqual(self.cover_device._response['ch_h'], ())
+        self.assertEqual(self.cover_device._response['ch_l'],
+                         (1, 2, 3, 4, 6, 7))
+        self.assertEqual(self.cover_device._response['chs'],
+                         (1, 2, 3, 4, 6, 7))
+        self.assertEqual(self.cover_device._response['info_data'],
+                         elero_platform.INFO_UNKNOWN)
+        self.assertEqual(self.cover_device._response['cs'], 152)
+
+        # Easy Ack (the answer on Easy Info) - 7
+        ser_resp = b'\xAA\x05\x4D\x00\x40\x00\xb7'
+        self.assertEqual(self.cover_device.parse_response(ser_resp), None)
+        self.assertEqual(self.cover_device._response['bytes'], ser_resp)
+        self.assertEqual(self.cover_device._response['header'], 170)
+        self.assertEqual(self.cover_device._response['length'], 5)
+        self.assertEqual(self.cover_device._response['command'], 77)
+        self.assertEqual(self.cover_device._response['ch_h'], ())
+        self.assertEqual(self.cover_device._response['ch_l'], (7,))
+        self.assertEqual(self.cover_device._response['chs'], (7,))
+        self.assertEqual(self.cover_device._response['info_data'],
+                         elero_platform.INFO_NO_INFORMATION)
+        self.assertEqual(self.cover_device._response['cs'], 183)
+
+        # unknown info info_data
+        ser_resp = b'\xAA\x05\x4D\x00\x40\x12\xb7'
+        self.assertEqual(self.cover_device.parse_response(ser_resp), None)
+        self.assertEqual(self.cover_device._response['bytes'], ser_resp)
+        self.assertEqual(self.cover_device._response['header'], 170)
+        self.assertEqual(self.cover_device._response['length'], 5)
+        self.assertEqual(self.cover_device._response['command'], 77)
+        self.assertEqual(self.cover_device._response['ch_h'], ())
+        self.assertEqual(self.cover_device._response['ch_l'], (7,))
+        self.assertEqual(self.cover_device._response['chs'], (7,))
+        self.assertEqual(self.cover_device._response['info_data'],
+                         elero_platform.INFO_UNKNOWN)
+        self.assertEqual(self.cover_device._response['cs'], 183)
+
+        # main else
+        ser_resp = b'\xAA\xAA\xAA\x00\x00\xAA\xAA\xAA\xAA'
+        self.assertEqual(self.cover_device.parse_response(ser_resp), None)
+        self.assertEqual(self.cover_device._response['bytes'], ser_resp)
+        self.assertEqual(self.cover_device._response['header'], 170)
+        self.assertEqual(self.cover_device._response['length'], 170)
+        self.assertEqual(self.cover_device._response['command'], 170)
+        self.assertEqual(self.cover_device._response['ch_h'], ())
+        self.assertEqual(self.cover_device._response['ch_l'], ())
+        self.assertEqual(self.cover_device._response['chs'], ())
+        self.assertEqual(self.cover_device._response['info_data'],
+                         elero_platform.INFO_UNKNOWN)
+        self.assertEqual(self.cover_device._response['cs'], 170)
 
     def test_calculate_checksum(self):
         """Testing the _calculate_checksum method."""
@@ -82,6 +167,12 @@ class EleroUnittest(unittest.TestCase):
         # b'\xAA\x04\x4E\x00\x10\xF4'
         self.assertEqual(self.cover_device._calculate_checksum(
             0xAA, 0x04, 0x4E, 0x00, 0x10), 0xF4)
+
+    def test__create_serial_data(self):
+        """Testing the _create_serial_data method."""
+        self.assertEqual(self.cover_device._create_serial_data(
+            [0xAA, 0x04, 0x4B, 0x00, 0x6F, 0x98]),
+            b'\xAA\x04\x4B\x00\x6F\x98')
 
     def test_set_channel_bits(self):
         """Testing the channel bit seting.
@@ -639,100 +730,10 @@ class EleroUnittest(unittest.TestCase):
         self.assertEqual(self.cover_device._get_channels_from_response(0x100),
                          (9,))
 
-    def test_answer_on_check(self):
-        """Testing the _answer_on_check method."""
-        self.assertEqual(self.cover_device._answer_on_check(
-            b'\xAA\x04\x6B\x00\x6F\x98'),
-            (1, 2, 3, 4, 6, 7))
-        self.assertEqual(self.cover_device._answer_on_check(
-            b'\xAA\x04\x6B\x00\x7F\x98'),
-            (1, 2, 3, 4, 5, 6, 7))
-
-    def test_answer_on_send(self):
-        """Testing the _answer_on_send method."""
-        # No information
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x00\xb7'),
-            elero_component.INFO_NO_INFORMATION)
-        # Top position stop
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x01\xb7'),
-            elero_component.INFO_TOP_POSITION_STOP)
-        # Bottom position stop
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x02\xb7'),
-            elero_component.INFO_BOTTOM_POSITION_STOP)
-        # Intermediate position stop
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x03\xb7'),
-            elero_component.INFO_INTERMEDIATE_POSITION_STOP)
-        # Tilt/ventilation position stop
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x04\xb7'),
-            elero_component.INFO_TILT_VENTILATION_POSITION_STOP)
-        # Blocking
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x05\xb7'),
-            elero_component.INFO_BLOCKING)
-        # Overheated
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x06\xb7'),
-            elero_component.INFO_OVERHEATED)
-        # Timeout
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x07\xb7'),
-            elero_component.INFO_TIMEOUT)
-        # Start to move up
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x08\xb7'),
-            elero_component.INFO_START_TO_MOVE_UP)
-        # Start to move down
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x09\xb7'),
-            elero_component.INFO_START_TO_MOVE_DOWN)
-        # Moving up
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x0A\xb7'),
-            elero_component.INFO_MOVING_UP)
-        # Moving down
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x0B\xb7'),
-            elero_component.INFO_MOVING_DOWN)
-        # Stopped in undefined position
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x0D\xb7'),
-            elero_component.INFO_STOPPED_IN_UNDEFINED_POSITION)
-        # Top position stop wich is tilt position
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x0E\xb7'),
-            elero_component.INFO_TOP_POSITION_STOP_WICH_IS_TILT_POSITION)
-        # Bottom position stop wich is intermediate position
-        self.assertEqual(
-            self.cover_device._answer_on_send(b'\xAA\x05\x4D\x00\x40\x0F\xb7'),
-            elero_component.INFO_BOTTOM_POSITION_STOP_WICH_IS_INTERMEDIATE_POSITION)
-        # Switching device switched off
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x10\xb7'),
-            elero_component.INFO_SWITCHING_DEVICE_SWITCHED_OFF)
-        # Switching device switched on
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\x11\xb7'),
-            elero_component.INFO_SWITCHING_DEVICE_SWITCHED_ON)
-        # not exists
-        self.assertEqual(self.cover_device._answer_on_send(
-            b'\xAA\x05\x4D\x00\x40\xAC\xb7'),
-            elero_component.INFO_UNKNOWN)
-        # any others invalid
-        for i in range(0x12, 0x100):
-            self.assertEqual(self.cover_device._answer_on_send(
-                b''.join([b'\xAA\x05\x4D\x00\x40',
-                          bytes.fromhex(format(i, 'X')),
-                          b'\xb7'])),
-                elero_component.INFO_UNKNOWN)
-
-    def test_answer_on_info(self):
-        """Testing the _answer_on_info method."""
-        self.test_answer_on_send()
+    def test_verify_channel(self):
+        """Testing the _create_serial_data method."""
+        self.assertEqual(self.cover_device.verify_channel(1), True)
+        self.assertEqual(self.cover_device.verify_channel(2), False)
 
 
 if __name__ == '__main__':
