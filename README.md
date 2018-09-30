@@ -286,9 +286,7 @@ It is possible to specify triggers for automation of your covers.
 
 - tilt functionality is in alpha state
     - tilt open and close should be control only the blades mouvements
-- wrong state handling:
-    - Unknown info respons: no response
-    - Unhandled response: 'Unknown info respons'
+    - continous mode:  the shutter closes completely
 
 ---
 
