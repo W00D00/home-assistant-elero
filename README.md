@@ -211,6 +211,8 @@ cover:
 
 The `continuous` mode means that the blades moves continuously after the 'tilt open' command up to the 'tilt stop' command.
 
+At now, you need to stop manualy the `continuous` tilt movement (see the "Waiting for implementation" section) befor the cover starts move up or down.
+
 Example of a cover setup with continuous tilt functionality:
 ```yaml
 # Example configuration.yaml entry
@@ -276,7 +278,9 @@ It is possible to specify triggers for automation of your covers.
 
 # Waiting for implementation
 
+- one command controls more covers
 - tilt handling (ongoing)
+    - tilt open and close should be control only the blades mouvements not the whole cover up and down
 - set position up-down, tilt
 - intermediate positions handling
 - ventilation / turning positions handling
@@ -285,8 +289,13 @@ It is possible to specify triggers for automation of your covers.
 # Known issues:
 
 - tilt functionality is in alpha state
-    - tilt open and close should be control only the blades mouvements
-    - continous mode:  the shutter closes completely
+    - tilt stepper mode:
+        - sometimes the cover goes up during a step (root cause: the stop command does not sent out to the cover, cotrol command sent as many as cover exist, corrective action: one command controls more covers)
+        - sometime the cover goes down during a step (root cause: the stop command does not sent out to the cover, cotrol command sent as many as cover exist, corrective action: one command controls more covers)
+    - tilt continuous mode:
+        - blad tilting does not stop at open or close position but moves further (root cause: Elero state limitation and my code does not monitor the cover tilt state yet, corrective action: no idea yet)
+        - the shutter closes completely
+- ...
 
 ---
 
