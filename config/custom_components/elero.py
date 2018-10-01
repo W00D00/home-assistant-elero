@@ -220,7 +220,7 @@ class EleroTransmitter(object):
         written_bytes = self._serial.write(data)
         bytes_data_len = len(data)
         if bytes_data_len != written_bytes:
-            _LOGGER.error("Ch: '%s' %s bytes written from %s.", self._channel,
+            _LOGGER.error("%s bytes written from %s.",
                           written_bytes, bytes_data_len)
         self._serial.reset_input_buffer()
         return written_bytes
@@ -265,8 +265,8 @@ class EleroDevice(object):
         """Create a hex list to the Info command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_4,
                     COMMAND_INFO,
-                    self._get_upper_channel_bits(self._channel),
-                    self._get_lower_channel_bits(self._channel)]
+                    self._get_upper_channel_bits(),
+                    self._get_lower_channel_bits()]
         return int_list
 
     def info(self):
@@ -280,8 +280,8 @@ class EleroDevice(object):
         """Create a hex list to Open command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._get_upper_channel_bits(self._channel),
-                    self._get_lower_channel_bits(self._channel),
+                    self._get_upper_channel_bits(),
+                    self._get_lower_channel_bits(),
                     PAYLOAD_UP]
         return int_list
 
@@ -296,8 +296,8 @@ class EleroDevice(object):
         """Create a hex list to Close command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._get_upper_channel_bits(self._channel),
-                    self._get_lower_channel_bits(self._channel),
+                    self._get_upper_channel_bits(),
+                    self._get_lower_channel_bits(),
                     PAYLOAD_DOWN]
         return int_list
 
@@ -312,8 +312,8 @@ class EleroDevice(object):
         """Create a hex list to the Stop command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._get_upper_channel_bits(self._channel),
-                    self._get_lower_channel_bits(self._channel),
+                    self._get_upper_channel_bits(),
+                    self._get_lower_channel_bits(),
                     PAYLOAD_STOP]
         return int_list
 
@@ -328,8 +328,8 @@ class EleroDevice(object):
         """Create a hex list to the intermediate command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._get_upper_channel_bits(self._channel),
-                    self._get_lower_channel_bits(self._channel),
+                    self._get_upper_channel_bits(),
+                    self._get_lower_channel_bits(),
                     PAYLOAD_INTERMEDIATE]
         return int_list
 
@@ -344,8 +344,8 @@ class EleroDevice(object):
         """Create a hex list to the tilt command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._get_upper_channel_bits(self._channel),
-                    self._get_lower_channel_bits(self._channel),
+                    self._get_upper_channel_bits(),
+                    self._get_lower_channel_bits(),
                     PAYLOAD_TILT]
         return int_list
 
@@ -360,8 +360,8 @@ class EleroDevice(object):
         """Create a hex list to the ventilation command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._get_upper_channel_bits(self._channel),
-                    self._get_lower_channel_bits(self._channel),
+                    self._get_upper_channel_bits(),
+                    self._get_lower_channel_bits(),
                     PAYLOAD_VENTILATION]
         return int_list
 
@@ -416,24 +416,27 @@ class EleroDevice(object):
         self._elero_transmitter.serial_write(bytes_data)
 
     def _calculate_checksum(self, *args):
-        """Checksum, all the sum of all bytes (Header to CS) must be 0x00."""
+        """Calculate checksum.
+
+        All the sum of all bytes (Header to CS) must be 0x00.
+        """
         return (256 - sum(args)) % 256
 
     def _create_serial_data(self, int_list):
-        """Create an Easy command to send over the serial."""
+        """Convert integers to bytes for serial communication."""
         bytes_data = bytes(int_list)
         return bytes_data
 
-    def _get_upper_channel_bits(self, num):
-        """Set upper channel bits, from 9 to 15."""
-        return (1 << (num-1)) >> BIT_8
+    def _get_upper_channel_bits(self):
+        """Set upper channel bits, for channel 9 to 15."""
+        return (1 << (self._channel-1)) >> BIT_8
 
-    def _get_lower_channel_bits(self, num):
+    def _get_lower_channel_bits(self):
         """Set lower channel bits, for channel 1 to 8."""
-        return (1 << (num-1)) & HEX_255
+        return (1 << (self._channel-1)) & HEX_255
 
     def _get_channels_from_response(self, byt):
-        """which channel numbers are set in bit mask."""
+        """The set channel numbers based on the bit mask."""
         channels = []
         for i in range(0, 16):
             if (byt >> i) & 1 == 1:
@@ -443,7 +446,10 @@ class EleroDevice(object):
         return tuple(channels)
 
     def verify_channel(self, ch):
-        """The channel has this answer."""
+        """Compare the set channel bit and the channel number of the device.
+
+        The answer is for this channel.
+        """
         if self._channel == ch:
             return True
         else:

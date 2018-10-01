@@ -134,7 +134,6 @@ class EleroCover(CoverDevice, EleroDevice):
         EleroDevice.__init__(self, channel)
         self.hass = hass
         self._name = name
-        self._channel = channel
         self._device_class = ELERO_COVER_DEVICE_CLASSES[device_class]
         # TODO: find a better method
         self._supported_features = 0
@@ -228,7 +227,7 @@ class EleroCover(CoverDevice, EleroDevice):
         return self._state
 
     def update(self):
-        """Update state and attributes."""
+        """Get the device sate and update its attributes and state."""
         self.info()
         ser_resp = self.get_response(RESPONSE_LENGTH_INFO)
         self.parse_response(ser_resp)
@@ -300,14 +299,14 @@ class EleroCover(CoverDevice, EleroDevice):
         self.schedule_update_ha_state()
 
     def set_cover_tilt_position(self, **kwargs):
-        """Move the cover til to a specific position."""
+        """Move the cover tilt to a specific position."""
 #        tilt_position = kwargs.get(ATTR_TILT_POSITION)
 #        self._set_tilt_position = round(tilt_position, -1)
         _LOGGER.warning("Ch: '%s' The set cover tilt position function is \
                         not implemented yet.", self._channel)
 
     def _processing_response(self):
-        """Set state variables based on device respons."""
+        """Set state variables based on device response."""
         if not self.verify_channel:
             return
         # INFO_NO_INFORMATION

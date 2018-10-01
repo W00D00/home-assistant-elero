@@ -180,38 +180,63 @@ class EleroUnittest(unittest.TestCase):
         The the _get_upper_channel_bits and
         the _get_lower_channel_bits method.
         """
-        self.assertEqual(self.cover_device._get_upper_channel_bits(1), 0x00)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(1), 0x01)
-        self.assertEqual(self.cover_device._get_upper_channel_bits(2), 0x00)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(2), 0x02)
-        self.assertEqual(self.cover_device._get_upper_channel_bits(3), 0x00)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(3), 0x04)
-        self.assertEqual(self.cover_device._get_upper_channel_bits(4), 0x00)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(4), 0x08)
-        self.assertEqual(self.cover_device._get_upper_channel_bits(5), 0x00)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(5), 0x10)
-        self.assertEqual(self.cover_device._get_upper_channel_bits(6), 0x00)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(6), 0x20)
-        self.assertEqual(self.cover_device._get_upper_channel_bits(7), 0x00)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(7), 0x40)
-        self.assertEqual(self.cover_device._get_upper_channel_bits(8), 0x00)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(8), 0x80)
-        self.assertEqual(self.cover_device._get_upper_channel_bits(9), 0x01)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(9), 0x00)
-        self.assertEqual(self.cover_device._get_upper_channel_bits(10), 0x02)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(10), 0x00)
-        self.assertEqual(self.cover_device._get_upper_channel_bits(11), 0x04)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(11), 0x00)
-        self.assertEqual(self.cover_device._get_upper_channel_bits(12), 0x08)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(12), 0x00)
-        self.assertEqual(self.cover_device._get_upper_channel_bits(13), 0x10)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(13), 0x00)
-        self.assertEqual(self.cover_device._get_upper_channel_bits(14), 0x20)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(14), 0x00)
-        self.assertEqual(self.cover_device._get_upper_channel_bits(15), 0x40)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(15), 0x00)
-        self.assertEqual(self.cover_device._get_upper_channel_bits(16), 128)
-        self.assertEqual(self.cover_device._get_lower_channel_bits(16), 0x00)
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x01)
+
+    def test_set_channel_bits_all(self):
+        """Testing the channel bit seting based on predefined channel.
+
+        The the _get_upper_channel_bits and
+        the _get_lower_channel_bits method.
+        """
+        self.cover_device._channel = 1
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x01)
+        self.cover_device._channel = 2
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x02)
+        self.cover_device._channel = 3
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x04)
+        self.cover_device._channel = 4
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x08)
+        self.cover_device._channel = 5
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x10)
+        self.cover_device._channel = 6
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x20)
+        self.cover_device._channel = 7
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x40)
+        self.cover_device._channel = 8
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x80)
+        self.cover_device._channel = 9
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x01)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
+        self.cover_device._channel = 10
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x02)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
+        self.cover_device._channel = 11
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x04)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
+        self.cover_device._channel = 12
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x08)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
+        self.cover_device._channel = 13
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x10)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
+        self.cover_device._channel = 14
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x20)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
+        self.cover_device._channel = 15
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x40)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
+        self.cover_device._channel = 16
+        self.assertEqual(self.cover_device._get_upper_channel_bits(), 128)
+        self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
 
     def test_get_channels_from_response(self):
         """Testing the _get_channels_from_response method."""
