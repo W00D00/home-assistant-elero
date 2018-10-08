@@ -16,7 +16,7 @@ class EleroUnittest(unittest.TestCase):
 
     def setUp(self):
         """Seting up the unittest."""
-        self.cover_device = elero_platform.EleroDevice(1)
+        self.cover_device = elero_platform.EleroDevice(None, (1,))
 
     def test_get_response(self):
         """Testing the get_response method."""
@@ -189,52 +189,52 @@ class EleroUnittest(unittest.TestCase):
         The the _get_upper_channel_bits and
         the _get_lower_channel_bits method.
         """
-        self.cover_device._channel = 1
+        self.cover_device._channels = (1,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x01)
-        self.cover_device._channel = 2
+        self.cover_device._channels = (2,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x02)
-        self.cover_device._channel = 3
+        self.cover_device._channels = (3,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x04)
-        self.cover_device._channel = 4
+        self.cover_device._channels = (4,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x08)
-        self.cover_device._channel = 5
+        self.cover_device._channels = (5,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x10)
-        self.cover_device._channel = 6
+        self.cover_device._channels = (6,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x20)
-        self.cover_device._channel = 7
+        self.cover_device._channels = (7,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x40)
-        self.cover_device._channel = 8
+        self.cover_device._channels = (8,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x00)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x80)
-        self.cover_device._channel = 9
+        self.cover_device._channels = (9,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x01)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
-        self.cover_device._channel = 10
+        self.cover_device._channels = (10,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x02)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
-        self.cover_device._channel = 11
+        self.cover_device._channels = (11,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x04)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
-        self.cover_device._channel = 12
+        self.cover_device._channels = (12,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x08)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
-        self.cover_device._channel = 13
+        self.cover_device._channels = (13,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x10)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
-        self.cover_device._channel = 14
+        self.cover_device._channels = (14,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x20)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
-        self.cover_device._channel = 15
+        self.cover_device._channels = (15,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 0x40)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
-        self.cover_device._channel = 16
+        self.cover_device._channels = (16,)
         self.assertEqual(self.cover_device._get_upper_channel_bits(), 128)
         self.assertEqual(self.cover_device._get_lower_channel_bits(), 0x00)
 
@@ -757,8 +757,9 @@ class EleroUnittest(unittest.TestCase):
 
     def test_verify_channel(self):
         """Testing the _create_serial_data method."""
-        self.assertEqual(self.cover_device.verify_channel(1), True)
-        self.assertEqual(self.cover_device.verify_channel(2), False)
+        self.cover_device._channels = (1,)
+        self.assertEqual(self.cover_device.verify_channels((1,)), True)
+        self.assertEqual(self.cover_device.verify_channels((2,)), False)
 
 
 if __name__ == '__main__':

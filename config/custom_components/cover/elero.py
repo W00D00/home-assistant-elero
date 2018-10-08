@@ -21,7 +21,8 @@ from homeassistant.const import (CONF_COVERS, CONF_DEVICE_CLASS, CONF_NAME,
                                  STATE_CLOSED, STATE_CLOSING, STATE_OPEN,
                                  STATE_OPENING, STATE_UNKNOWN)
 
-from custom_components.elero import (INFO_BLOCKING,
+from custom_components.elero import (CONF_TRANSMITTER_ID, ELERO_TRANSMITTERS,
+                                     INFO_BLOCKING,
                                      INFO_BOTTOM_POS_STOP_WICH_INT_POS,
                                      INFO_BOTTOM_POSITION_STOP,
                                      INFO_INTERMEDIATE_POSITION_STOP,
@@ -51,7 +52,7 @@ POSITION_CLOSED = 0
 POSITION_INTERMEDIATE = 50
 POSITION_OPEN = 100
 
-CONF_CHANNEL = 'channel'
+CONF_CHANNELS = 'channels'
 
 SUPPORT_TILT = 'tilt'
 CONF_TILT_MODE = 'tilt_mode'
@@ -89,15 +90,18 @@ SUPPORTED_TILT_MODES = vol.All(
 SUPPORTED_FEATURES_SCHEMA = vol.All(cv.ensure_list,
                                     [vol.In(SUPPORTED_FEATURES)])
 
+CHANNEL_NUMBERS_SCHEMA = vol.All(cv.ensure_list,
+                                 [vol.Range(min=1, max=15)])
+
 # Validation of the user's configuration
 COVER_SCHEMA = vol.Schema({
+    vol.Required(CONF_TRANSMITTER_ID): cv.positive_int,
     vol.Required(CONF_NAME): str,
-    vol.Required(CONF_CHANNEL): vol.All(
-        vol.Coerce(int), vol.Range(min=1, max=15)),
+    vol.Required(CONF_CHANNELS): CHANNEL_NUMBERS_SCHEMA,
     vol.Required(CONF_DEVICE_CLASS): ELERO_COVER_DEVICE_CLASSES_SCHEMA,
     vol.Required(CONF_SUPPORTED_FEATURES): SUPPORTED_FEATURES_SCHEMA,
     vol.Optional(CONF_TILT_MODE, default=TILT_MODE_STEPPER):
-        vol.All(vol.Lower, vol.Any(TILT_MODE_STEPPER, TILT_MODE_CONTINUOUS)),
+    SUPPORTED_TILT_MODES,
     vol.Optional(CONF_TILT_SLEEP, default=DEFAULT_TILT_SLEEP): float,
 })
 
@@ -114,8 +118,9 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     for cover_name, cover_conf in covers_conf.items():
         covers.append(EleroCover(
             hass,
+            ELERO_TRANSMITTERS[cover_conf.get(CONF_TRANSMITTER_ID)],
             cover_conf.get(CONF_NAME),
-            cover_conf.get(CONF_CHANNEL),
+            cover_conf.get(CONF_CHANNELS),
             cover_conf.get(CONF_DEVICE_CLASS),
             cover_conf.get(CONF_SUPPORTED_FEATURES),
             cover_conf.get(CONF_TILT_MODE),
@@ -128,10 +133,10 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 class EleroCover(CoverDevice, EleroDevice):
     """Representation of a Elero cover device."""
 
-    def __init__(self, hass, name, channel, device_class, supported_features,
-                 tilt_mode, tilt_sleep):
+    def __init__(self, hass, transmitter, name, channels, device_class,
+                 supported_features, tilt_mode, tilt_sleep):
         """Init of a Elero cover."""
-        EleroDevice.__init__(self, channel)
+        EleroDevice.__init__(self, transmitter, channels)
         self.hass = hass
         self._name = name
         self._device_class = ELERO_COVER_DEVICE_CLASSES[device_class]
@@ -262,7 +267,7 @@ class EleroCover(CoverDevice, EleroDevice):
 #        position = kwargs.get(ATTR_POSITION)
 #        self._set_position = round(position, -1)
         _LOGGER.warning("Ch: '%s' The set cover position function is \
-                        not implemented yet.", self._channel)
+                        not implemented yet.", self._channels)
 
     def close_cover_tilt(self, **kwargs):
         """Close the cover tilt."""
@@ -303,11 +308,11 @@ class EleroCover(CoverDevice, EleroDevice):
 #        tilt_position = kwargs.get(ATTR_TILT_POSITION)
 #        self._set_tilt_position = round(tilt_position, -1)
         _LOGGER.warning("Ch: '%s' The set cover tilt position function is \
-                        not implemented yet.", self._channel)
+                        not implemented yet.", self._channels)
 
     def _processing_response(self):
         """Set state variables based on device response."""
-        if not self.verify_channel:
+        if not self.verify_channels:
             return
         # INFO_NO_INFORMATION
         if self._response['info_data'] == INFO_NO_INFORMATION:
@@ -413,7 +418,7 @@ class EleroCover(CoverDevice, EleroDevice):
             self._is_opening = None
             self._position = None
             self._state = STATE_UNKNOWN
-            _LOGGER.warning("Ch: '%s' Error response: '%s'", self._channel,
+            _LOGGER.warning("Ch: '%s' Error response: '%s'", self._channels,
                             self._response['info_data'])
         # INFO_SWITCHING_DEVICE_SWITCHED_ON, INFO_SWITCHING_DEVICE_SWITCHED_OFF
         elif self._response['info_data'] in (
@@ -431,5 +436,5 @@ class EleroCover(CoverDevice, EleroDevice):
             self._is_opening = None
             self._position = None
             self._state = STATE_UNKNOWN
-            _LOGGER.warning("Ch: '%s' Unhandled response: '%s'", self._channel,
+            _LOGGER.warning("Ch: '%s' Unhandled response: '%s'", self._channels,
                             self._response['info_data'])

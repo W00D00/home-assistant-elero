@@ -22,8 +22,7 @@ To use the receiver control of the Home Assistant, at least one receiver must be
 # Limitations
 
 1. According to the documentation of the Elero USB Transmitter I should control more covers with one command. However, It is not working for me yet. This causes many timing and control problems. I will try to solve it as soon as I know.
-
-2. At now only one trasmitter can be used.
+This is why you use the HA cover group.
 
 # Elero features
 
@@ -45,8 +44,14 @@ The Elero Transmitter stick supports the following Elero device features:
 ---
 
 # Configuration of Elero platform
-you need to configure Elero USB Transmitter stick in your installation, add and setup the following settings to your `configuration.yaml` file:
+You can use as many transmitter as you want. So, you can control more than 15 devices.
+You need to configure every Elero USB Transmitter sticks in your installation, add and setup the following settings to your `configuration.yaml` file to every stick:
 
+- **transmitter_id:**
+    - **description:** The ID (number) of the given Elero Transmitter Stick.
+    - **required:** true
+    - **type:** integer
+    - **default:** -
 - **port:**
     - **description:** Name of the serial port to the Elero Transmitter Stick.
     - **required:** false
@@ -88,20 +93,16 @@ you need to configure Elero USB Transmitter stick in your installation, add and 
     - **type:** float
     - **default:** 0.06
 
-If your device is plugged into the '/dev/ttyUSB0' of your board you do not have to configure anything just insert the following into the `configuration.yaml` file:
+If you have only one device and it is plugged into the '/dev/ttyUSB0' USB port of your board you have to configure it with the following in the `configuration.yaml` file:
+
+Example of the basic configuration:
 
 ```yaml
 # Example configuration.yaml entry
 elero:
-```
-
-In every other case:
-
-Example of the port configuration:
-```yaml
-# Example configuration.yaml entry
-elero:
-    port: '/dev/ttyUSB0'
+    transmitters:
+        - transmitter_id: 1
+          port: '/dev/ttyUSB0'
 ```
 
 Example of the full configuration:
@@ -109,14 +110,16 @@ Example of the full configuration:
 ```yaml
 # Example configuration.yaml entry
 elero:
-    port: '/dev/ttyUSB0'
-    baudrate: 38400
-    bytesize: 8
-    parity: 'N'
-    stopbits: 1
-    read_sleep: 0.05
-    read_timeout: 2.5
-    write_sleep: 0.08
+    transmitters:
+        - transmitter_id: 1
+          port: '/dev/ttyUSB0'
+          baudrate: 38400
+          bytesize: 8
+          parity: 'N'
+          stopbits: 1
+          read_sleep: 0.05
+          read_timeout: 2.5
+          write_sleep: 0.08
 ```
 
 ---
@@ -125,6 +128,13 @@ elero:
 
 To enable an Elero component like a covers in your installation, add the following to your `configuration.yaml` file:
 
+- **transmitter_id:**
+    - **description:** The ID (number) of the given Elero Transmitter Stick. /
+    The given channel is at that Elero USB Transmitter Stick.
+    - **required:** true
+    - **type:** integer
+    - **default:** -
+    - **value:** your choose
 - **name:**
     - **description:** Name of your cover device that is displayed on the UI.
     - **required:** true
@@ -178,8 +188,10 @@ cover:
     - platform: elero
       covers:
           bathroom_small:
+              transmitter_id: 1
               name: Shower
-              channel: 1
+              channel:
+                  - 1
               device_class: roller shutter
               supported_features:
                   - up
@@ -204,7 +216,8 @@ cover:
       covers:
           childrenroom:
               name: George
-              channel: 3
+              channel:
+                  - 3
               device_class: venetian blind
               supported_features:
                   - up
@@ -227,7 +240,8 @@ cover:
       covers:
           childrenroom:
               name: George
-              channel: 3
+              channel:
+                  - 3
               device_class: venetian blind
               supported_features:
                   - up
@@ -290,7 +304,6 @@ It is possible to specify triggers for automation of your covers.
 - set position up-down, tilt
 - intermediate positions handling
 - ventilation / turning positions handling
-- more than one usb transmitter handling
 
 # Known issues:
 

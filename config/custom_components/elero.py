@@ -24,9 +24,11 @@ _LOGGER = logging.getLogger(__name__)
 DOMAIN = 'elero'
 
 # The Transmitter device.
-ELERO_TRANSMITTER = None
+ELERO_TRANSMITTERS = {}
 
 # Configs to the serial connection.
+CONF_TRANSMITTERS = 'transmitters'
+CONF_TRANSMITTER_ID = 'transmitter_id'
 CONF_BAUDRATE = 'baudrate'
 CONF_BYTESIZE = 'bytesize'
 CONF_PARITY = 'parity'
@@ -125,49 +127,59 @@ INFO = {0x00: INFO_NO_INFORMATION,
         0x11: INFO_SWITCHING_DEVICE_SWITCHED_ON,
         }
 
+ELERO_TRANSMITTER_SCHEMA = vol.Schema({
+    vol.Required(CONF_TRANSMITTER_ID): cv.positive_int,
+    vol.Required(CONF_PORT, default=DEFAULT_PORT): str,
+    vol.Optional(CONF_BAUDRATE, default=DEFAULT_BAUDRATE): cv.positive_int,
+    vol.Optional(CONF_BYTESIZE, default=DEFAULT_BYTESIZE): cv.positive_int,
+    vol.Optional(CONF_PARITY, default=DEFAULT_PARITY): str,
+    vol.Optional(CONF_STOPBITS, default=DEFAULT_STOPBITS): cv.positive_int,
+    vol.Optional(CONF_READ_SLEEP, default=DEFAULT_READ_SLEEP): float,
+    vol.Optional(CONF_READ_TIMEOUT, default=DEFAULT_READ_TIMEOUT): float,
+    vol.Optional(CONF_WRITE_SLEEP, default=DEFAULT_WRITE_SLEEP): float,
+})
+
 # Validation of the user's configuration.
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
-        vol.Optional(CONF_PORT, default=DEFAULT_PORT): str,
-        vol.Optional(CONF_BAUDRATE, default=DEFAULT_BAUDRATE): cv.positive_int,
-        vol.Optional(CONF_BYTESIZE, default=DEFAULT_BYTESIZE): cv.positive_int,
-        vol.Optional(CONF_PARITY, default=DEFAULT_PARITY): str,
-        vol.Optional(CONF_STOPBITS, default=DEFAULT_STOPBITS): cv.positive_int,
-        vol.Optional(CONF_READ_SLEEP, default=DEFAULT_READ_SLEEP): float,
-        vol.Optional(CONF_READ_TIMEOUT, default=DEFAULT_READ_TIMEOUT): float,
-        vol.Optional(CONF_WRITE_SLEEP, default=DEFAULT_WRITE_SLEEP): float,
-    })
+        vol.Required(CONF_TRANSMITTERS): [ELERO_TRANSMITTER_SCHEMA],
+    }),
 }, extra=vol.ALLOW_EXTRA)
 
 
 def setup(hass, config):
     """Set up is called when Home Assistant is loading our component."""
-    hass.states.set('elero.elero', config[DOMAIN].get(CONF_PORT))
-    port = config[DOMAIN].get(CONF_PORT)
-    baudrate = config[DOMAIN].get(CONF_BAUDRATE)
-    bytesize = config[DOMAIN].get(CONF_BYTESIZE)
-    parity = config[DOMAIN].get(CONF_PARITY)
-    stopbits = config[DOMAIN].get(CONF_STOPBITS)
-    read_sleep = config[DOMAIN].get(CONF_READ_SLEEP)
-    read_timeout = config[DOMAIN].get(CONF_READ_TIMEOUT)
-    write_sleep = config[DOMAIN].get(CONF_WRITE_SLEEP)
+    elero_config = config.get(DOMAIN)
+    for transmitter in elero_config.get(CONF_TRANSMITTERS):
+        transmitter_id = transmitter.get(CONF_TRANSMITTER_ID)
+        port = transmitter.get(CONF_PORT)
+        baudrate = transmitter.get(CONF_BAUDRATE)
+        bytesize = transmitter.get(CONF_BYTESIZE)
+        parity = transmitter.get(CONF_PARITY)
+        stopbits = transmitter.get(CONF_STOPBITS)
+        read_sleep = transmitter.get(CONF_READ_SLEEP)
+        read_timeout = transmitter.get(CONF_READ_TIMEOUT)
+        write_sleep = transmitter.get(CONF_WRITE_SLEEP)
 
-    try:
-        ser = serial.Serial(port, baudrate, bytesize, parity, stopbits)
-    except serial.serialutil.SerialException as exc:
-        _LOGGER.exception(
-            "Unable to open serial port for Elero USB Stick: %s", exc)
-        return False
+        try:
+            ser = serial.Serial(port, baudrate, bytesize, parity, stopbits)
+        except serial.serialutil.SerialException as exc:
+            _LOGGER.exception(
+                "Unable to open serial port for Elero USB Stick: %s", exc)
+            return False
 
-    global ELERO_TRANSMITTER
-    ELERO_TRANSMITTER = EleroTransmitter(ser, read_sleep, read_timeout,
-                                         write_sleep)
+        global ELERO_TRANSMITTERS
+        ELERO_TRANSMITTERS[transmitter_id] = EleroTransmitter(transmitter_id,
+                                                              ser, read_sleep,
+                                                              read_timeout,
+                                                              write_sleep)
 
-    def close_serial_port():
+    def close_serial_ports():
         """Close the serial port."""
-        ser.close()
+        for id, ser in ELERO_TRANSMITTERS.items():
+            ser.close()
 
-    hass.bus.listen_once(EVENT_HOMEASSISTANT_STOP, close_serial_port)
+    hass.bus.listen_once(EVENT_HOMEASSISTANT_STOP, close_serial_ports)
 
     # Return boolean to indicate that initialization was successfully.
     return True
@@ -176,12 +188,18 @@ def setup(hass, config):
 class EleroTransmitter(object):
     """Representation of an Elero Centero USB Transmitter Stick."""
 
-    def __init__(self, ser, read_sleep, read_timeout, write_sleep):
+    def __init__(self, transmitter_id, ser, read_sleep, read_timeout,
+                 write_sleep):
         """Initialize the usb stick."""
+        self.transmitter_id = transmitter_id
         self._serial = ser
         self._read_sleep = read_sleep
         self._read_timeout = read_timeout
         self._write_sleep = write_sleep
+
+    def get_transmitter_id(self):
+        """Returns with the id of the given transmitter stick."""
+        return self.transmitter_id
 
     def serial_open(self):
         """Open the serial port."""
@@ -229,10 +247,10 @@ class EleroTransmitter(object):
 class EleroDevice(object):
     """Representation of an Elero Centero USB Transmitter Stick."""
 
-    def __init__(self, channel):
+    def __init__(self, transmitter, channels):
         """Init of a elero device."""
-        self._elero_transmitter = ELERO_TRANSMITTER
-        self._channel = channel
+        self._elero_transmitter = transmitter
+        self._channels = set(channels)
 
         self._reset_response()
 
@@ -406,7 +424,7 @@ class EleroDevice(object):
             self._response['cs'] = ser_resp[6]
         else:
             _LOGGER.warning("Ch: '%s' Unknown response: %s",
-                            self._channel, ser_resp)
+                            self._channels, ser_resp)
             self._response['info_data'] = INFO_UNKNOWN
 
     def _send_command(self, int_list):
@@ -429,11 +447,17 @@ class EleroDevice(object):
 
     def _get_upper_channel_bits(self):
         """Set upper channel bits, for channel 9 to 15."""
-        return (1 << (self._channel-1)) >> BIT_8
+        res = 0
+        for ch in self._channels:
+            res |= (1 << (ch-1)) >> BIT_8
+        return res
 
     def _get_lower_channel_bits(self):
         """Set lower channel bits, for channel 1 to 8."""
-        return (1 << (self._channel-1)) & HEX_255
+        res = 0
+        for ch in self._channels:
+            res |= (1 << (ch-1)) & HEX_255
+        return res
 
     def _get_channels_from_response(self, byt):
         """The set channel numbers based on the bit mask."""
@@ -445,12 +469,12 @@ class EleroDevice(object):
 
         return tuple(channels)
 
-    def verify_channel(self, ch):
+    def verify_channels(self, channels):
         """Compare the set channel bit and the channel number of the device.
 
         The answer is for this channel.
         """
-        if self._channel == ch:
+        if self._channels == channels:
             return True
         else:
             return False
