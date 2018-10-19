@@ -74,18 +74,16 @@ RESPONSE_LENGTH_INFO = 7
 NO_SERIAL_RESPONSE = b''
 
 # Playloads to send.
-PAYLOAD_UP = 0x20
-PAYLOAD_UP_TEXT = "Up"
-PAYLOAD_INTERMEDIATE = 0x44
-PAYLOAD_INTERMEDIATE_TEXT = "Intermediate"
-PAYLOAD_TILT = 0x24
-PAYLOAD_TILT_TEXT = "Tilt"
-PAYLOAD_VENTILATION = 0x24
-PAYLOAD_VENTILATION_TEXT = "Ventilation"
-PAYLOAD_DOWN = 0x40
-PAYLOAD_DOWN_TEXT = "Down"
 PAYLOAD_STOP = 0x10
-PAYLOAD_STOP_TEXT = "Stop"
+PAYLOAD_STOP_TEXT = "stop"
+PAYLOAD_UP = 0x20
+PAYLOAD_UP_TEXT = "up"
+PAYLOAD_VENTILATION_POS_TILTING = 0x24
+PAYLOAD_VENTILATION_POS_TILTING_TEXT = "ventilation position/tilting"
+PAYLOAD_DOWN = 0x40
+PAYLOAD_DOWN_TEXT = "down"
+PAYLOAD_INTERMEDIATE_POS = 0x44
+PAYLOAD_INTERMEDIATE_POS_TEXT = "intermediate position/tilting"
 
 # Info to receive response.
 INFO_UNKNOWN = "unknown response"
@@ -247,7 +245,7 @@ class EleroTransmitter(object):
 class EleroDevice(object):
     """Representation of an Elero Centero USB Transmitter Stick."""
 
-    def __init__(self, transmitter, channels):
+    def __init__(self, transmitter, *channels):
         """Init of a elero device."""
         self._elero_transmitter = transmitter
         self._channels = set(channels)
@@ -261,8 +259,8 @@ class EleroDevice(object):
                           'command': None,
                           'ch_h': None,
                           'ch_l': None,
-                          'chs': None,
-                          'info_data': None,
+                          'chs': set(),
+                          'status': None,
                           'cs': None,
                           }
 
@@ -348,7 +346,7 @@ class EleroDevice(object):
                     COMMAND_SEND,
                     self._get_upper_channel_bits(),
                     self._get_lower_channel_bits(),
-                    PAYLOAD_INTERMEDIATE]
+                    PAYLOAD_INTERMEDIATE_POS]
         return int_list
 
     def intermediate(self):
@@ -358,49 +356,34 @@ class EleroDevice(object):
         """
         self._send_command(self._get_intermediate_command())
 
-    def _get_tilt_command(self):
-        """Create a hex list to the tilt command."""
-        int_list = [BYTE_HEADER, BYTE_LENGTH_5,
-                    COMMAND_SEND,
-                    self._get_upper_channel_bits(),
-                    self._get_lower_channel_bits(),
-                    PAYLOAD_TILT]
-        return int_list
-
-    def tilt(self):
-        """Set the cover in tilt position.
-
-        Should be received an answer "Easy Act" with in 4 seconds.
-        """
-        self._send_command(self._get_tilt_command())
-
-    def _get_ventilation_command(self):
+    def _get_ventilation_tilting_command(self):
         """Create a hex list to the ventilation command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
                     self._get_upper_channel_bits(),
                     self._get_lower_channel_bits(),
-                    PAYLOAD_VENTILATION]
+                    PAYLOAD_VENTILATION_POS_TILTING]
         return int_list
 
-    def ventilation(self):
+    def ventilation_tilting(self):
         """Set the cover in ventilation position.
 
         Should be received an answer "Easy Act" with in 4 seconds.
         """
-        self._send_command(self._get_ventilation_command())
+        self._send_command(self._get_ventilation_tilting_command())
 
-    def get_response(self, resp_lenght):
+    def _read_response(self, resp_lenght):
         """Get the serial data from the serial port."""
-        return self._elero_transmitter.serial_read(resp_lenght)
+        ser_resp = self._elero_transmitter.serial_read(resp_lenght)
+        return ser_resp
 
-    def parse_response(self, ser_resp):
+    def _parse_response(self, ser_resp):
         """Parse the serial data as a response."""
         self._reset_response()
         self._response['bytes'] = ser_resp
         # No response or serial data
         if not ser_resp:
-            self._response['info_data'] = INFO_NO_INFORMATION
+            self._response['status'] = INFO_NO_INFORMATION
             return
         resp_length = len(ser_resp)
         # Common and Easy Confirmed (the answer on Easy Check)
@@ -412,20 +395,20 @@ class EleroDevice(object):
                 ser_resp[3])
             self._response['ch_l'] = self._get_channels_from_response(
                 ser_resp[4])
-            self._response['chs'] = (
+            self._response['chs'] = set(
                 self._response['ch_h'] + self._response['ch_l'])
             self._response['cs'] = ser_resp[5]
         # Easy Ack (the answer on Easy Info)
         if resp_length == RESPONSE_LENGTH_SEND:
             if ser_resp[5] in INFO:
-                self._response['info_data'] = INFO[ser_resp[5]]
+                self._response['status'] = INFO[ser_resp[5]]
             else:
-                self._response['info_data'] = INFO_UNKNOWN
+                self._response['status'] = INFO_UNKNOWN
             self._response['cs'] = ser_resp[6]
         else:
             _LOGGER.warning("Ch: '%s' Unknown response: %s",
                             self._channels, ser_resp)
-            self._response['info_data'] = INFO_UNKNOWN
+            self._response['status'] = INFO_UNKNOWN
 
     def _send_command(self, int_list):
         """Write out a command to the serial port."""
@@ -469,12 +452,12 @@ class EleroDevice(object):
 
         return tuple(channels)
 
-    def verify_channels(self, channels):
-        """Compare the set channel bit and the channel number of the device.
+    def _verify_channels(self):
+        """Compare the response channel and the channel of the device.
 
         The answer is for this channel.
         """
-        if self._channels == channels:
+        if self._channels == self._response['chs']:
             return True
         else:
             return False
