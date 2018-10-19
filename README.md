@@ -30,12 +30,12 @@ The Elero Transmitter stick supports the following Elero device features:
 - up*
 - down*
 - stop*
-- tilt**
-    - open**
-    - close**
-    - stop**
-- intermediate position**
-- ventilation / turning position**
+- tilt*
+    - open*
+    - close*
+    - stop*
+- intermediate position*
+- ventilation / turning position*
 
 *implemented
 
@@ -166,20 +166,11 @@ To enable an Elero component like a covers in your installation, add the followi
         - up
         - down
         - stop
-        - tilt
-- **tilt mode:**
-    - **description:** Your choose to how the tilt function works.
-    - **required:** false
-    - **type:** string
-    - **default:** stepper
-    - **value:**
-        - stepper
-        - continuous
-- **tilt sleep:**
-    - **description:** The seconds of the sleeping loop between the moves of the blinds.
-    - **required:** false
-    - **type:** float
-    - **default:** 0.1
+        - set_position
+        - open_tilt
+        - close_tilt
+        - stop_tilt
+        - set_tilt_position
 
 Example of a simple cover setup:
 ```yaml
@@ -197,58 +188,6 @@ cover:
                   - up
                   - down
                   - stop
-```
-
-## Configuration of the tilt functionality
-The tilt can be configured as `stepper` or `continuous`.
-
-**The `stepper` mode is the default mode.**
-
-This mode means that every `tilt open` or `tilt close` command form the UI starts an open command after wait a second then starts a stop command.
-
-The 'wait' can be configured with the `tilt sleep` parameter in seconds.
-
-Example of a cover setup with stepper tilt functionality:
-```yaml
-# Example configuration.yaml entry
-cover:
-    - platform: elero
-      covers:
-          childrenroom:
-              name: George
-              channel:
-                  - 3
-              device_class: venetian blind
-              supported_features:
-                  - up
-                  - down
-                  - stop
-                  - tilt
-              tilt_mode: stepper
-              tilt_sleep: 0.08
-```
-
-The `continuous` mode means that the blades moves continuously after the 'tilt open' command up to the 'tilt stop' command.
-
-At now, you need to stop manualy the `continuous` tilt movement (see the "Waiting for implementation" section) befor the cover starts move up or down.
-
-Example of a cover setup with continuous tilt functionality:
-```yaml
-# Example configuration.yaml entry
-cover:
-    - platform: elero
-      covers:
-          childrenroom:
-              name: George
-              channel:
-                  - 3
-              device_class: venetian blind
-              supported_features:
-                  - up
-                  - down
-                  - stop
-                  - tilt
-              tilt_mode: continuous
 ```
 
 ---
@@ -299,21 +238,10 @@ It is possible to specify triggers for automation of your covers.
 # Waiting for implementation
 
 - one command controls more covers
-- tilt handling (ongoing)
-    - tilt open and close should be control only the blades mouvements not the whole cover up and down
-- set position up-down, tilt
-- intermediate positions handling
-- ventilation / turning positions handling
+
 
 # Known issues:
 
-- tilt functionality is in alpha state
-    - tilt stepper mode:
-        - sometimes the cover goes up during a step (root cause: the stop command does not sent out to the cover, cotrol command sent as many as cover exist, corrective action: one command controls more covers)
-        - sometime the cover goes down during a step (root cause: the stop command does not sent out to the cover, cotrol command sent as many as cover exist, corrective action: one command controls more covers)
-    - tilt continuous mode:
-        - blad tilting does not stop at open or close position but moves further (root cause: Elero state limitation and my code does not monitor the cover tilt state yet, corrective action: no idea yet)
-        - the shutter closes completely
 - ...
 
 ---
