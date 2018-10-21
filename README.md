@@ -181,8 +181,7 @@ cover:
           bathroom_small:
               transmitter_id: 1
               name: Shower
-              channel:
-                  - 1
+              channel: 1
               device_class: roller shutter
               supported_features:
                   - up
