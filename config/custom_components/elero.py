@@ -220,7 +220,7 @@ class EleroTransmitter(object):
             # time out
             if sleep_time > self._read_timeout:
                 return NO_SERIAL_RESPONSE
-        res = self._serial.read(self._serial.in_waiting)
+        res = self._serial.read(size)
         return res
 
     def serial_write(self, data):
