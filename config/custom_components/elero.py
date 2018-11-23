@@ -163,7 +163,8 @@ def setup(hass, config):
             ser = serial.Serial(port, baudrate, bytesize, parity, stopbits)
         except serial.serialutil.SerialException as exc:
             _LOGGER.exception(
-                "Unable to open serial port for Elero USB Stick: %s", exc)
+                    "Unable to open serial port for '%s' Elero USB Stick: '%s'", 
+                    transmitter_id, exc)
             return False
 
         global ELERO_TRANSMITTERS
@@ -211,15 +212,6 @@ class EleroTransmitter(object):
         """Read the serial port."""
         if not self._serial.isOpen():
             self.serial_open()
-        sleep_time = 0
-        while True:
-            if self._serial.in_waiting == size:
-                break
-            time.sleep(self._read_sleep)
-            sleep_time += self._read_sleep
-            # time out
-            if sleep_time > self._read_timeout:
-                return NO_SERIAL_RESPONSE
         res = self._serial.read(size)
         return res
 
@@ -227,18 +219,7 @@ class EleroTransmitter(object):
         """Write the serial port."""
         if not self._serial.isOpen():
             self.serial_open()
-        sleep_time = 0
-        while True:
-            if self._serial.out_waiting == 0:
-                break
-            time.sleep(self._write_sleep)
-            sleep_time += self._write_sleep
         written_bytes = self._serial.write(data)
-        bytes_data_len = len(data)
-        if bytes_data_len != written_bytes:
-            _LOGGER.error("%s bytes written from %s.",
-                          written_bytes, bytes_data_len)
-        self._serial.reset_input_buffer()
         return written_bytes
 
 
@@ -375,6 +356,9 @@ class EleroDevice(object):
     def _read_response(self, resp_lenght):
         """Get the serial data from the serial port."""
         ser_resp = self._elero_transmitter.serial_read(resp_lenght)
+        _LOGGER.debug("Elero transmitter: '%s' ch: '%s' serial response: '%s'", 
+            self._elero_transmitter.get_transmitter_id(), 
+            self._channels, ser_resp)
         return ser_resp
 
     def _parse_response(self, ser_resp):
@@ -406,14 +390,19 @@ class EleroDevice(object):
                 self._response['status'] = INFO_UNKNOWN
             self._response['cs'] = ser_resp[6]
         else:
-            _LOGGER.warning("Ch: '%s' Unknown response: %s",
-                            self._channels, ser_resp)
+            _LOGGER.warning(
+                "Elero transmitter: '%s' ch: '%s' Unknown response: '%s'",
+                self._elero_transmitter.get_transmitter_id(), 
+                self._channels, ser_resp)
             self._response['status'] = INFO_UNKNOWN
 
     def _send_command(self, int_list):
         """Write out a command to the serial port."""
         int_list.append(self._calculate_checksum(*int_list))
         bytes_data = self._create_serial_data(int_list)
+        _LOGGER.debug("Elero transmitter: '%s' ch: '%s' serial command: '%s'", 
+            self._elero_transmitter.get_transmitter_id(),
+            self._channels, bytes_data)
         self._elero_transmitter.serial_write(bytes_data)
 
     def _calculate_checksum(self, *args):

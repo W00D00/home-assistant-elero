@@ -48,8 +48,12 @@ DEPENDENCIES = ['elero']
 _LOGGER = logging.getLogger(__name__)
 
 POSITION_CLOSED = 0
-POSITION_INTERMEDIATE = 50
+POSITION_INTERMEDIATE = 25
+POSITION_UNDEFINED = 50
+POSITION_TILT_VENTILATION = 75
 POSITION_OPEN = 100
+
+ATTR_ELERO_STATE = 'elero_state'
 
 CONF_CHANNELS = 'channel'
 
@@ -143,6 +147,7 @@ class EleroCover(CoverDevice, EleroDevice):
         self._tilt_position = None
         self._set_tilt_position = None
         self._state = None
+        self._elero_state = None
 
     @property
     def name(self):
@@ -207,6 +212,17 @@ class EleroCover(CoverDevice, EleroDevice):
         """Return the state of the cover."""
         return self._state
 
+    @property
+    def device_state_attributes(self):
+        """Return device specific state attributes."""
+        data = {}
+
+        elero_state = self._elero_state
+        if elero_state is not None:
+            data[ATTR_ELERO_STATE] = self._elero_state
+
+        return data
+
     def update(self):
         """Get the device sate and update its attributes and state."""
         self.info()
@@ -234,8 +250,9 @@ class EleroCover(CoverDevice, EleroDevice):
         """Move the cover to a specific position."""
         position = kwargs.get(ATTR_POSITION)
         self._set_position = round(position, -1)
-        _LOGGER.warning("Ch: '%s' The set cover position function is \
-                        not implemented yet.", self._channels)
+        _LOGGER.warning("Elero transmitter: '%s' ch: '%s' \
+        The set cover position function is not implemented yet.", 
+            self._elero_transmitter.get_transmitter_id(), self._channels)
 
     def close_cover_tilt(self, **kwargs):
         """Close the cover tilt."""
@@ -259,8 +276,9 @@ class EleroCover(CoverDevice, EleroDevice):
         """Move the cover tilt to a specific position."""
         tilt_position = kwargs.get(ATTR_TILT_POSITION)
         self._set_tilt_position = round(tilt_position, -1)
-        _LOGGER.warning("Ch: '%s' The set cover tilt position function is \
-                        not implemented yet.", self._channels)
+        _LOGGER.warning("Elero transmitter: '%s' ch: '%s' \
+        The set cover tilt position function is not implemented yet.", 
+            self._elero_transmitter.get_transmitter_id(), self._channels)
 
     def get_response(self, resp_lenght):
         """Set state variables based on device response."""
@@ -273,6 +291,7 @@ class EleroCover(CoverDevice, EleroDevice):
         # the response is not for this channel
         if not self._verify_channels():
             return
+        self._elero_state = self._response['status']
         # INFO_NO_INFORMATION
         if self._response['status'] == INFO_NO_INFORMATION:
             self._closed = None
@@ -303,22 +322,22 @@ class EleroCover(CoverDevice, EleroDevice):
             self._is_closing = False
             self._is_opening = False
             self._position = POSITION_INTERMEDIATE
-            self._tilt_position = POSITION_INTERMEDIATE
+            self._tilt_position = POSITION_OPEN
             self._state = STATE_OPEN
         # INFO_TILT_VENTILATION_POS_STOP
         elif self._response['status'] == INFO_TILT_VENTILATION_POS_STOP:
             self._closed = False
             self._is_closing = False
             self._is_opening = False
-            self._position = POSITION_INTERMEDIATE
-            self._tilt_position = POSITION_INTERMEDIATE
+            self._position = POSITION_TILT_VENTILATION
+            self._tilt_position = STATE_OPEN
             self._state = STATE_OPEN
         # INFO_START_TO_MOVE_UP
         elif self._response['status'] == INFO_START_TO_MOVE_UP:
             self._closed = False
             self._is_closing = False
             self._is_opening = True
-            self._position = POSITION_INTERMEDIATE
+            self._position = POSITION_UNDEFINED
             self._tilt_position = POSITION_OPEN
             self._state = STATE_OPENING
         # INFO_START_TO_MOVE_DOWN
@@ -326,15 +345,15 @@ class EleroCover(CoverDevice, EleroDevice):
             self._closed = False
             self._is_closing = True
             self._is_opening = False
-            self._position = POSITION_INTERMEDIATE
-            self._tilt_position = POSITION_CLOSED
+            self._position = POSITION_UNDEFINED
+            self._tilt_position = POSITION_OPEN
             self._state = STATE_CLOSING
         # INFO_MOVING_UP
         elif self._response['status'] == INFO_MOVING_UP:
             self._closed = False
             self._is_closing = False
             self._is_opening = True
-            self._position = POSITION_INTERMEDIATE
+            self._position = POSITION_UNDEFINED
             self._tilt_position = POSITION_OPEN
             self._state = STATE_OPENING
         # INFO_MOVING_DOWN
@@ -342,16 +361,16 @@ class EleroCover(CoverDevice, EleroDevice):
             self._closed = False
             self._is_closing = True
             self._is_opening = False
-            self._position = POSITION_INTERMEDIATE
-            self._tilt_position = POSITION_CLOSED
+            self._position = POSITION_UNDEFINED
+            self._tilt_position = POSITION_OPEN
             self._state = STATE_CLOSING
         # INFO_STOPPED_IN_UNDEFINED_POSITION
         elif self._response['status'] == INFO_STOPPED_IN_UNDEFINED_POSITION:
             self._closed = False
             self._is_closing = False
             self._is_opening = False
-            self._position = POSITION_INTERMEDIATE
-            self._tilt_position = POSITION_INTERMEDIATE
+            self._position = POSITION_UNDEFINED
+            self._tilt_position = POSITION_UNDEFINED
             self._state = STATE_OPEN
         # INFO_TOP_POS_STOP_WICH_TILT_POS
         elif self._response['status'] == INFO_TOP_POS_STOP_WICH_TILT_POS:
@@ -378,8 +397,10 @@ class EleroCover(CoverDevice, EleroDevice):
             self._position = None
             self._tilt_position = None
             self._state = STATE_UNKNOWN
-            _LOGGER.warning("Ch: '%s' Error response: '%s'", self._channels,
-                            self._response['status'])
+            _LOGGER.warning("Elero transmitter: '%s' ch: '%s' \
+            Error response: '%s'", 
+            self._elero_transmitter.get_transmitter_id(), 
+            self._channels, self._response['status'])
         # INFO_SWITCHING_DEVICE_SWITCHED_ON, INFO_SWITCHING_DEVICE_SWITCHED_OFF
         elif self._response['status'] in (
                 INFO_SWITCHING_DEVICE_SWITCHED_ON,
@@ -397,5 +418,7 @@ class EleroCover(CoverDevice, EleroDevice):
             self._position = None
             self._tilt_position = None
             self._state = STATE_UNKNOWN
-            _LOGGER.warning("Ch: '%s' Unhandled response: '%s'",
-                            self._channels, self._response['status'])
+            _LOGGER.warning("Elero transmitter: '%s' ch: '%s' \
+            Unhandled response: '%s'",
+                self._elero_transmitter.get_transmitter_id(),
+                self._channels, self._response['status'])
