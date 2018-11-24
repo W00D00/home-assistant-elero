@@ -1,56 +1,50 @@
-﻿
-#####################
+
+###############################################################################
 # Main View #
-#####################
+#############
 default_view:
-    name: Otthon
+    name: 'Home'
     view: yes
     icon: mdi:home
     entities:
-        - group.sun_group
-
-# Sun
-sun_group:
-    name: Időjárás adatok (Sun)
-    view: no
-    entities:
         - sun.sun
-        - sensor.solar_azimuth
-        - sensor.solar_elevation
 
-#####################
+
+###############################################################################
 # Cover System View #
 #####################
 
 cover_view:
-    name: Árnyékolók
+    name: 'Covers'
     view: yes
     entities:
-        - elero.elero
         - group.cover_all_covers_group
         - group.cover_all_groups_group
-        - automation.close_the_covers_before_sunset
 
 cover_all_covers_group:
-    name: Helyiségek
+    name: 'Rooms'
     view: no
     entities:
-        - cover.zuhanyzo
-        - cover.vendeg
-        - cover.gergo
-        - cover.furdo
-        - cover.halo
-        - cover.nappali
-        - cover.etkezo
-        
+        - cover.bathroom_small
+        - cover.guestroom
+        - cover.childrenroom
+        - cover.bathroom_big
+        - cover.bedroom
+        - cover.livingroom
+        - cover.diningroom
+        - sensor.diningroom_state
+        - sensor.diningroom_elero_state
+        - sensor.diningroom_current_tilt_position
+        - sensor.diningroom_current_position
+
 cover_all_groups_group:
-    name: Csoportok
+    name: 'Groups'
     view: no
     entities:
-        - cover.mind
-        - cover.nappal
-        - cover.utcafront
-        - cover.kelet
-        - cover.del
-        - cover.nyugat
-        - cover.kdny
+        - cover.all_cover_group
+        - cover.daytime_group
+        - cover.street_facing_group
+        - cover.east_group
+        - cover.south_group
+        - cover.west_group
+        - cover.east_south_west_group

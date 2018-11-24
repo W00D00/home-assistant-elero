@@ -251,8 +251,9 @@ class EleroCover(CoverDevice, EleroDevice):
         position = kwargs.get(ATTR_POSITION)
         self._set_position = round(position, -1)
         _LOGGER.warning("Elero transmitter: '%s' ch: '%s' \
-        The set cover position function is not implemented yet.", 
-            self._elero_transmitter.get_transmitter_id(), self._channels)
+        The set cover position function is not implemented yet.",
+                        self._elero_transmitter.get_transmitter_id(),
+                        self._channels)
 
     def close_cover_tilt(self, **kwargs):
         """Close the cover tilt."""
@@ -277,8 +278,9 @@ class EleroCover(CoverDevice, EleroDevice):
         tilt_position = kwargs.get(ATTR_TILT_POSITION)
         self._set_tilt_position = round(tilt_position, -1)
         _LOGGER.warning("Elero transmitter: '%s' ch: '%s' \
-        The set cover tilt position function is not implemented yet.", 
-            self._elero_transmitter.get_transmitter_id(), self._channels)
+        The set cover tilt position function is not implemented yet.",
+                        self._elero_transmitter.get_transmitter_id(),
+                        self._channels)
 
     def get_response(self, resp_lenght):
         """Set state variables based on device response."""
@@ -398,9 +400,9 @@ class EleroCover(CoverDevice, EleroDevice):
             self._tilt_position = None
             self._state = STATE_UNKNOWN
             _LOGGER.warning("Elero transmitter: '%s' ch: '%s' \
-            Error response: '%s'", 
-            self._elero_transmitter.get_transmitter_id(), 
-            self._channels, self._response['status'])
+            Error response: '%s'",
+                            self._elero_transmitter.get_transmitter_id(),
+                            self._channels, self._response['status'])
         # INFO_SWITCHING_DEVICE_SWITCHED_ON, INFO_SWITCHING_DEVICE_SWITCHED_OFF
         elif self._response['status'] in (
                 INFO_SWITCHING_DEVICE_SWITCHED_ON,
@@ -420,5 +422,5 @@ class EleroCover(CoverDevice, EleroDevice):
             self._state = STATE_UNKNOWN
             _LOGGER.warning("Elero transmitter: '%s' ch: '%s' \
             Unhandled response: '%s'",
-                self._elero_transmitter.get_transmitter_id(),
-                self._channels, self._response['status'])
+                            self._elero_transmitter.get_transmitter_id(),
+                            self._channels, self._response['status'])

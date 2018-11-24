@@ -5,7 +5,6 @@ For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/elero/
 """
 import logging
-import time
 
 import homeassistant.helpers.config_validation as cv
 import serial
@@ -33,9 +32,6 @@ CONF_BAUDRATE = 'baudrate'
 CONF_BYTESIZE = 'bytesize'
 CONF_PARITY = 'parity'
 CONF_STOPBITS = 'stopbits'
-CONF_READ_SLEEP = 'read_sleep'
-CONF_READ_TIMEOUT = 'read_timeout'
-CONF_WRITE_SLEEP = 'write_sleep'
 
 # Default serial connection details.
 DEFAULT_PORT = '/dev/ttyUSB0'
@@ -43,9 +39,6 @@ DEFAULT_BAUDRATE = 38400
 DEFAULT_BYTESIZE = serial.EIGHTBITS
 DEFAULT_PARITY = serial.PARITY_NONE
 DEFAULT_STOPBITS = serial.STOPBITS_ONE
-DEFAULT_READ_SLEEP = 0.01
-DEFAULT_READ_TIMEOUT = 2.0
-DEFAULT_WRITE_SLEEP = 0.06
 
 # values to bit shift.
 HEX_255 = 0xFF
@@ -132,9 +125,6 @@ ELERO_TRANSMITTER_SCHEMA = vol.Schema({
     vol.Optional(CONF_BYTESIZE, default=DEFAULT_BYTESIZE): cv.positive_int,
     vol.Optional(CONF_PARITY, default=DEFAULT_PARITY): str,
     vol.Optional(CONF_STOPBITS, default=DEFAULT_STOPBITS): cv.positive_int,
-    vol.Optional(CONF_READ_SLEEP, default=DEFAULT_READ_SLEEP): float,
-    vol.Optional(CONF_READ_TIMEOUT, default=DEFAULT_READ_TIMEOUT): float,
-    vol.Optional(CONF_WRITE_SLEEP, default=DEFAULT_WRITE_SLEEP): float,
 })
 
 # Validation of the user's configuration.
@@ -155,23 +145,18 @@ def setup(hass, config):
         bytesize = transmitter.get(CONF_BYTESIZE)
         parity = transmitter.get(CONF_PARITY)
         stopbits = transmitter.get(CONF_STOPBITS)
-        read_sleep = transmitter.get(CONF_READ_SLEEP)
-        read_timeout = transmitter.get(CONF_READ_TIMEOUT)
-        write_sleep = transmitter.get(CONF_WRITE_SLEEP)
 
         try:
             ser = serial.Serial(port, baudrate, bytesize, parity, stopbits)
         except serial.serialutil.SerialException as exc:
             _LOGGER.exception(
-                    "Unable to open serial port for '%s' Elero USB Stick: '%s'", 
-                    transmitter_id, exc)
+                "Unable to open serial port for '%s' Elero USB Stick: '%s'",
+                transmitter_id, exc)
             return False
 
         global ELERO_TRANSMITTERS
         ELERO_TRANSMITTERS[transmitter_id] = EleroTransmitter(transmitter_id,
-                                                              ser, read_sleep,
-                                                              read_timeout,
-                                                              write_sleep)
+                                                              ser)
 
     def close_serial_ports():
         """Close the serial port."""
@@ -187,14 +172,10 @@ def setup(hass, config):
 class EleroTransmitter(object):
     """Representation of an Elero Centero USB Transmitter Stick."""
 
-    def __init__(self, transmitter_id, ser, read_sleep, read_timeout,
-                 write_sleep):
+    def __init__(self, transmitter_id, ser):
         """Initialize the usb stick."""
         self.transmitter_id = transmitter_id
         self._serial = ser
-        self._read_sleep = read_sleep
-        self._read_timeout = read_timeout
-        self._write_sleep = write_sleep
 
     def get_transmitter_id(self):
         """Returns with the id of the given transmitter stick."""
@@ -356,9 +337,9 @@ class EleroDevice(object):
     def _read_response(self, resp_lenght):
         """Get the serial data from the serial port."""
         ser_resp = self._elero_transmitter.serial_read(resp_lenght)
-        _LOGGER.debug("Elero transmitter: '%s' ch: '%s' serial response: '%s'", 
-            self._elero_transmitter.get_transmitter_id(), 
-            self._channels, ser_resp)
+        _LOGGER.debug("Elero transmitter: '%s' ch: '%s' serial response: '%s'",
+                      self._elero_transmitter.get_transmitter_id(),
+                      self._channels, ser_resp)
         return ser_resp
 
     def _parse_response(self, ser_resp):
@@ -388,11 +369,12 @@ class EleroDevice(object):
                 self._response['status'] = INFO[ser_resp[5]]
             else:
                 self._response['status'] = INFO_UNKNOWN
+                _LOGGER.warning("Elero status is unknown: %s", ser_resp[5])
             self._response['cs'] = ser_resp[6]
         else:
             _LOGGER.warning(
-                "Elero transmitter: '%s' ch: '%s' Unknown response: '%s'",
-                self._elero_transmitter.get_transmitter_id(), 
+                "Elero transmitter: '%s' ch: '%s' unknown response: '%s'",
+                self._elero_transmitter.get_transmitter_id(),
                 self._channels, ser_resp)
             self._response['status'] = INFO_UNKNOWN
 
@@ -400,9 +382,9 @@ class EleroDevice(object):
         """Write out a command to the serial port."""
         int_list.append(self._calculate_checksum(*int_list))
         bytes_data = self._create_serial_data(int_list)
-        _LOGGER.debug("Elero transmitter: '%s' ch: '%s' serial command: '%s'", 
-            self._elero_transmitter.get_transmitter_id(),
-            self._channels, bytes_data)
+        _LOGGER.debug("Elero transmitter: '%s' ch: '%s' serial command: '%s'",
+                      self._elero_transmitter.get_transmitter_id(),
+                      self._channels, bytes_data)
         self._elero_transmitter.serial_write(bytes_data)
 
     def _calculate_checksum(self, *args):
@@ -449,4 +431,7 @@ class EleroDevice(object):
         if self._channels == self._response['chs']:
             return True
         else:
+            _LOGGER.warning("Elero the channels are not matched! \
+            HA ch: '%s' response ch: '%s'",
+                            self._channels, self._response['chs'])
             return False

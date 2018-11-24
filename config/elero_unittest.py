@@ -18,9 +18,7 @@ class EleroUnittest(unittest.TestCase):
         """Seting up the unittest."""
         self._serial = Mock()
         self.elero_transmitter = elero_platform.EleroTransmitter(
-            1, self._serial, elero_platform.DEFAULT_READ_SLEEP,
-            elero_platform.DEFAULT_READ_TIMEOUT,
-            elero_platform.DEFAULT_WRITE_SLEEP)
+            1, self._serial)
         self.elero_device = elero_platform.EleroDevice(
             self.elero_transmitter, 1)
 
@@ -80,7 +78,7 @@ class EleroUnittest(unittest.TestCase):
         """Testing the get_transmitter_id method."""
         self.assertEqual(self.elero_transmitter.get_transmitter_id(), 1)
 
-    def test__read_response(self):
+    def test_read_response(self):
         """Testing the get_response method."""
         self._serial.read = Mock(
             return_value=b'')
@@ -193,6 +191,22 @@ class EleroUnittest(unittest.TestCase):
         self.assertEqual(self.elero_device._response['status'],
                          elero_platform.INFO_UNKNOWN)
         self.assertEqual(self.elero_device._response['cs'], 152)
+
+    def test_parse_response_easy_info_andy_01(self):
+        """Testing the parse_response method."""
+        # Easy Ack (the answer on Easy Info) - 7
+        ser_resp = b'\xaa\x05M\x04\x00\x01\xff'
+        self.assertEqual(self.elero_device._parse_response(ser_resp), None)
+        self.assertEqual(self.elero_device._response['bytes'], ser_resp)
+        self.assertEqual(self.elero_device._response['header'], 170)
+        self.assertEqual(self.elero_device._response['length'], 5)
+        self.assertEqual(self.elero_device._response['command'], 77)
+        self.assertEqual(self.elero_device._response['ch_h'], (3,))
+        self.assertEqual(self.elero_device._response['ch_l'], ())
+        self.assertEqual(self.elero_device._response['chs'], {3})
+        self.assertEqual(self.elero_device._response['status'],
+                         elero_platform.INFO_TOP_POSITION_STOP)
+        self.assertEqual(self.elero_device._response['cs'], 255)
 
     def test_parse_response_easy_info_1(self):
         """Testing the parse_response method."""

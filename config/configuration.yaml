@@ -3,11 +3,8 @@
 cover: !include covers.yaml
 
 # Elero
-elero:
-    transmitters:
-        - transmitter_id: 1
-          port: '/dev/ttyUSB0'
-          
+elero: !include elero.yaml
+
 # Group
 group: !include groups.yaml
 

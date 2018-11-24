@@ -77,21 +77,6 @@ You need to configure every Elero USB Transmitter sticks in your installation, a
     - **required:** false
     - **type:** integer
     - **default:*** 1
-- **read_sleep:**
-    - **description:** The seconds of the sleeping loop of the serial read process.
-    - **required:** false
-    - **type:** integer
-    - **default:** 0.01
-- **read_timeout:**
-    - **description:** The maximum seconds to wait for serial data.
-    - **required:** false
-    - **type:** integer
-    - **default:** 2.0
-- **write_sleep:**
-    - **description:** The seconds of the wait loop to the serial data write out before new data is send.
-    - **required:** false
-    - **type:** float
-    - **default:** 0.06
 
 If you have only one device and it is plugged into the '/dev/ttyUSB0' USB port of your board you have to configure it with the following in the `configuration.yaml` file:
 
@@ -117,9 +102,6 @@ elero:
           bytesize: 8
           parity: 'N'
           stopbits: 1
-          read_sleep: 0.05
-          read_timeout: 2.5
-          write_sleep: 0.08
 ```
 
 ---
@@ -181,8 +163,7 @@ cover:
           bathroom_small:
               transmitter_id: 1
               name: Shower
-              channel:
-                  - 1
+              channel: 1
               device_class: roller shutter
               supported_features:
                   - up

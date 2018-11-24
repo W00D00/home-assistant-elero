@@ -1,123 +1,144 @@
-  - platform: elero
-    covers:
-        bathroom_small:
-            name: Zuhanyzo
-            channel:
-                - 1
-            device_class: roller shutter
-            supported_features:
-                - up
-                - down
-                - stop
-        guestroom:
-            name: Vendeg
-            channel:
-                - 2
-            device_class: roller shutter
-            supported_features:
-                - up
-                - down
-                - stop
-        childrenroom:
-            name: Gergo
-            channel:
-                - 3
-            device_class: venetian blind
-            supported_features:
-                - up
-                - down
-                - stop
-                - tilt
-        bathroom_big:
-            name: Furdo
-            channel:
-                - 4
-            device_class: venetian blind
-            supported_features:
-                - up
-                - down
-                - stop
-                - tilt
-        bedroom:
-            name: Halo
-            channel:
-                - 5
-            device_class: venetian blind
-            supported_features:
-                - up
-                - down
-                - stop
-                - tilt
-        livingroom:
-            name: Nappali
-            channel:
-                - 6
-            device_class: venetian blind
-            supported_features:
-                - up
-                - down
-                - stop
-                - tilt
-        diningroom:
-            name: Etkezo
-            channel:
-                - 7
-            device_class: venetian blind
-            supported_features:
-                - up
-                - down
-                - stop
-                - tilt
+- platform: elero
+  covers:
+    bathroom_small:
+        transmitter_id: 1
+        name: 'bathroom_small'
+        channel: 1
+        device_class: roller shutter
+        supported_features:
+            - up
+            - down
+            - stop
+            - set_position
+    guestroom:
+        transmitter_id: 1
+        name: 'guestroom'
+        channel: 2
+        device_class: roller shutter
+        supported_features:
+            - up
+            - down
+            - stop
+            - set_position
+    childrenroom:
+        transmitter_id: 1
+        name: 'childrenroom'
+        channel: 3
+        device_class: venetian blind
+        supported_features:
+            - up
+            - down
+            - stop
+            - set_position
+            - open_tilt
+            - close_tilt
+            - stop_tilt
+            - set_tilt_position
+    bathroom_big:
+        transmitter_id: 1
+        name: 'bathroom_big'
+        channel: 4
+        device_class: venetian blind
+        supported_features:
+            - up
+            - down
+            - stop
+            - set_position
+            - open_tilt
+            - close_tilt
+            - stop_tilt
+            - set_tilt_position
+    bedroom:
+        transmitter_id: 1
+        name: 'bedroom'
+        channel: 5
+        device_class: venetian blind
+        supported_features:
+            - up
+            - down
+            - stop
+            - set_position
+            - open_tilt
+            - close_tilt
+            - stop_tilt
+            - set_tilt_position
+    livingroom:
+        transmitter_id: 1
+        name: 'livingroom'
+        channel: 6
+        device_class: venetian blind
+        supported_features:
+            - up
+            - down
+            - stop
+            - set_position
+            - open_tilt
+            - close_tilt
+            - stop_tilt
+            - set_tilt_position
+    diningroom:
+        transmitter_id: 1
+        name: 'diningroom'
+        channel: 7
+        device_class: venetian blind
+        supported_features:
+            - up
+            - down
+            - stop
+            - set_position
+            - open_tilt
+            - close_tilt
+            - stop_tilt
+            - set_tilt_position
 
-  - platform: group
-    name: "Mind"
-    entities:
-        - cover.zuhanyzo
-        - cover.vendeg
-        - cover.gergo
-        - cover.furdo
-        - cover.halo
-        - cover.nappali
-        - cover.etkezo
+- platform: group
+  name: 'all_cover_group'
+  entities:
+    - cover.bathroom_small
+    - cover.guestroom
+    - cover.childrenroom
+    - cover.bathroom_big
+    - cover.bedroom
+    - cover.livingroom
+    - cover.diningroom
 
-  - platform: group
-    name: "Nappal"
-    entities:
-        - cover.zuhanyzo
-        - cover.gergo
-        - cover.halo
-        - cover.nappali
-        - cover.etkezo
+- platform: group
+  name: 'daytime_group'
+  entities:
+    - cover.bathroom_small
+    - cover.childrenroom
+    - cover.bedroom
+    - cover.livingroom
+    - cover.diningroom
 
-  - platform: group
-    name: "Utcafront"
-    entities:
-        - cover.zuhanyzo
-        - cover.vendeg
+- platform: group
+  name: 'street_facing_group'
+  entities:
+    - cover.bathroom_small
+    - cover.guestroom
 
-  - platform: group
-    name: "Kelet"
-    entities:
-        - cover.gergo
+- platform: group
+  name: 'east_group'
+  entities:
+    - cover.childrenroom
 
-  - platform: group
-    name: "Del"
-    entities:
-        - cover.furdo
-        - cover.halo
-        - cover.nappali
+- platform: group
+  name: 'south_group'
+  entities:
+    - cover.bathroom_big
+    - cover.bedroom
+    - cover.livingroom
 
-  - platform: group
-    name: "Nyugat"
-    entities:
-        - cover.nappali
-        - cover.etkezo
+- platform: group
+  name: 'west_group'
+  entities:
+    - cover.diningroom
 
-  - platform: group
-    name: "K-D-Ny"
-    entities:
-        - cover.gergo
-        - cover.furdo
-        - cover.halo
-        - cover.nappali
-        - cover.etkezo
+- platform: group
+  name: 'east_south_west_group'
+  entities:
+    - cover.childrenroom
+    - cover.bathroom_big
+    - cover.bedroom
+    - cover.livingroom
+    - cover.diningroom

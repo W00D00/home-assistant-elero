@@ -1,11 +1,16 @@
 
-  - platform: template
-    sensors:
-      solar_elevation:
-        friendly_name: "Sun elevation"
-        unit_of_measurement: 'degrees'
-        value_template: "{{ states.sun.sun.attributes.elevation }}"
-      solar_azimuth:
-        friendly_name: "Sun azimuth"
-        unit_of_measurement: 'degrees'
-        value_template: "{{ states.sun.sun.attributes.azimuth }}"
+# Cover states
+- platform: template
+  sensors:
+    diningroom_state:
+        value_template: "{{ states.cover.diningroom.state }}"
+        friendly_name: 'HAS state'
+    diningroom_elero_state:
+        value_template: "{{ state_attr('cover.diningroom', 'elero_state') }}"
+        friendly_name: 'Elero state'
+    diningroom_current_position:
+        value_template: "{{state_attr('cover.diningroom', 'current_position')}}"
+        friendly_name: 'HA position'
+    diningroom_current_tilt_position:
+        value_template: "{{state_attr('cover.diningroom', 'current_tilt_position')}}"
+        friendly_name: 'HA tilt position'
