@@ -176,7 +176,7 @@ class EleroUnittest(unittest.TestCase):
 
     def test_parse_response_easy_check_123467(self):
         """Testing the parse_response method."""
-        # Common and Easy Confirmed (the answer on Easy Check) - 6
+        # Common and Easy Confirmed (the answer on Easy Check) - 1,2,3,4,6,7
         ser_resp = b'\xAA\x04\x4B\x00\x6F\x98'
         self.assertEqual(self.elero_device._parse_response(ser_resp), None)
         self.assertEqual(self.elero_device._response['bytes'], ser_resp)
@@ -194,23 +194,23 @@ class EleroUnittest(unittest.TestCase):
 
     def test_parse_response_easy_info_andy_01(self):
         """Testing the parse_response method."""
-        # Easy Ack (the answer on Easy Info) - 7
+        # Easy Ack (the answer on Easy Info) - 11
         ser_resp = b'\xaa\x05M\x04\x00\x01\xff'
         self.assertEqual(self.elero_device._parse_response(ser_resp), None)
         self.assertEqual(self.elero_device._response['bytes'], ser_resp)
         self.assertEqual(self.elero_device._response['header'], 170)
         self.assertEqual(self.elero_device._response['length'], 5)
         self.assertEqual(self.elero_device._response['command'], 77)
-        self.assertEqual(self.elero_device._response['ch_h'], (3,))
+        self.assertEqual(self.elero_device._response['ch_h'], (11,))
         self.assertEqual(self.elero_device._response['ch_l'], ())
-        self.assertEqual(self.elero_device._response['chs'], {3})
+        self.assertEqual(self.elero_device._response['chs'], {11})
         self.assertEqual(self.elero_device._response['status'],
                          elero_platform.INFO_TOP_POSITION_STOP)
         self.assertEqual(self.elero_device._response['cs'], 255)
 
     def test_parse_response_easy_info_1(self):
         """Testing the parse_response method."""
-        # Easy Ack (the answer on Easy Info) - 7
+        # Easy Ack (the answer on Easy Info) - 1
         ser_resp = b'\xAA\x05\x4D\x00\x01\x00\x03'
         self.assertEqual(self.elero_device._parse_response(ser_resp), None)
         self.assertEqual(self.elero_device._response['bytes'], ser_resp)
@@ -244,7 +244,7 @@ class EleroUnittest(unittest.TestCase):
 
     def test_parse_response_unknown(self):
         """Testing the parse_response method."""
-        # unknown info status
+        # unknown info status - 7
         ser_resp = b'\xAA\x05\x4D\x00\x40\x12\xb7'
         self.assertEqual(self.elero_device._parse_response(ser_resp), None)
         self.assertEqual(self.elero_device._response['bytes'], ser_resp)
@@ -298,583 +298,616 @@ class EleroUnittest(unittest.TestCase):
     def test_set_channel_bits(self):
         """Testing the channel bit seting.
 
-        The the _get_upper_channel_bits and
-        the _get_lower_channel_bits method.
+        The the _set_upper_channel_bits and
+        the _set_lower_channel_bits method.
         """
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x00)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x01)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x01)
 
     def test_set_channel_bits_all(self):
         """Testing the channel bit seting based on predefined channel.
 
-        The the _get_upper_channel_bits and
-        the _get_lower_channel_bits method.
+        The the _set_upper_channel_bits and
+        the _set_lower_channel_bits method.
         """
         self.elero_device._channels = (1,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x00)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x01)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x01)
         self.elero_device._channels = (2,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x00)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x02)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x02)
         self.elero_device._channels = (3,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x00)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x04)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x04)
         self.elero_device._channels = (4,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x00)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x08)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x08)
         self.elero_device._channels = (5,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x00)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x10)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x10)
         self.elero_device._channels = (6,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x00)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x20)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x20)
         self.elero_device._channels = (7,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x00)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x40)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x40)
         self.elero_device._channels = (8,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x00)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x80)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x80)
         self.elero_device._channels = (9,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x01)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x01)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x00)
         self.elero_device._channels = (10,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x02)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x02)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x00)
         self.elero_device._channels = (11,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x04)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x04)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x00)
         self.elero_device._channels = (12,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x08)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x08)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x00)
         self.elero_device._channels = (13,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x10)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x10)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x00)
         self.elero_device._channels = (14,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x20)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x20)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x00)
         self.elero_device._channels = (15,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 0x40)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 0x40)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x00)
         self.elero_device._channels = (16,)
-        self.assertEqual(self.elero_device._get_upper_channel_bits(), 128)
-        self.assertEqual(self.elero_device._get_lower_channel_bits(), 0x00)
+        self.assertEqual(self.elero_device._set_upper_channel_bits(), 128)
+        self.assertEqual(self.elero_device._set_lower_channel_bits(), 0x00)
 
-    def test_get_channels_from_response(self):
-        """Testing the _get_channels_from_response method."""
-        self.assertEqual(self.elero_device._get_channels_from_response(0x00),
+    def test_get_learned_channels(self):
+        """Testing the _get_learned_channels method."""
+        self.assertEqual(self.elero_device._get_learned_channels(0x00),
                          ())
-        self.assertEqual(self.elero_device._get_channels_from_response(0x01),
+        self.assertEqual(self.elero_device._get_learned_channels(0x01),
                          (1,))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x02),
+        self.assertEqual(self.elero_device._get_learned_channels(0x02),
                          (2,))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x03),
+        self.assertEqual(self.elero_device._get_learned_channels(0x03),
                          (1, 2))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x04),
+        self.assertEqual(self.elero_device._get_learned_channels(0x04),
                          (3,))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x05),
+        self.assertEqual(self.elero_device._get_learned_channels(0x05),
                          (1, 3))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x06),
+        self.assertEqual(self.elero_device._get_learned_channels(0x06),
                          (2, 3))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x07),
+        self.assertEqual(self.elero_device._get_learned_channels(0x07),
                          (1, 2, 3))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x08),
+        self.assertEqual(self.elero_device._get_learned_channels(0x08),
                          (4,))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x09),
+        self.assertEqual(self.elero_device._get_learned_channels(0x09),
                          (1, 4))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x0A),
+        self.assertEqual(self.elero_device._get_learned_channels(0x0A),
                          (2, 4))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x0B),
+        self.assertEqual(self.elero_device._get_learned_channels(0x0B),
                          (1, 2, 4))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x0C),
+        self.assertEqual(self.elero_device._get_learned_channels(0x0C),
                          (3, 4))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x0D),
+        self.assertEqual(self.elero_device._get_learned_channels(0x0D),
                          (1, 3, 4))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x0E),
+        self.assertEqual(self.elero_device._get_learned_channels(0x0E),
                          (2, 3, 4))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x0F),
+        self.assertEqual(self.elero_device._get_learned_channels(0x0F),
                          (1, 2, 3, 4))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x10),
+        self.assertEqual(self.elero_device._get_learned_channels(0x10),
                          (5,))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x11),
+        self.assertEqual(self.elero_device._get_learned_channels(0x11),
                          (1, 5))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x12),
+        self.assertEqual(self.elero_device._get_learned_channels(0x12),
                          (2, 5))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x13),
+        self.assertEqual(self.elero_device._get_learned_channels(0x13),
                          (1, 2, 5))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x14),
+        self.assertEqual(self.elero_device._get_learned_channels(0x14),
                          (3, 5))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x15),
+        self.assertEqual(self.elero_device._get_learned_channels(0x15),
                          (1, 3, 5))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x16),
+        self.assertEqual(self.elero_device._get_learned_channels(0x16),
                          (2, 3, 5))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x17),
+        self.assertEqual(self.elero_device._get_learned_channels(0x17),
                          (1, 2, 3, 5))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x18),
+        self.assertEqual(self.elero_device._get_learned_channels(0x18),
                          (4, 5))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x19),
+        self.assertEqual(self.elero_device._get_learned_channels(0x19),
                          (1, 4, 5))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x1A),
+        self.assertEqual(self.elero_device._get_learned_channels(0x1A),
                          (2, 4, 5))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x1B),
+        self.assertEqual(self.elero_device._get_learned_channels(0x1B),
                          (1, 2, 4, 5))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x1C),
+        self.assertEqual(self.elero_device._get_learned_channels(0x1C),
                          (3, 4, 5))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x1D),
+        self.assertEqual(self.elero_device._get_learned_channels(0x1D),
                          (1, 3, 4, 5))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x1E),
+        self.assertEqual(self.elero_device._get_learned_channels(0x1E),
                          (2, 3, 4, 5))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x1F),
+        self.assertEqual(self.elero_device._get_learned_channels(0x1F),
                          (1, 2, 3, 4, 5))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x20),
+        self.assertEqual(self.elero_device._get_learned_channels(0x20),
                          (6,))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x21),
+        self.assertEqual(self.elero_device._get_learned_channels(0x21),
                          (1, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x22),
+        self.assertEqual(self.elero_device._get_learned_channels(0x22),
                          (2, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x23),
+        self.assertEqual(self.elero_device._get_learned_channels(0x23),
                          (1, 2, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x24),
+        self.assertEqual(self.elero_device._get_learned_channels(0x24),
                          (3, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x25),
+        self.assertEqual(self.elero_device._get_learned_channels(0x25),
                          (1, 3, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x26),
+        self.assertEqual(self.elero_device._get_learned_channels(0x26),
                          (2, 3, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x27),
+        self.assertEqual(self.elero_device._get_learned_channels(0x27),
                          (1, 2, 3, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x28),
+        self.assertEqual(self.elero_device._get_learned_channels(0x28),
                          (4, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x29),
+        self.assertEqual(self.elero_device._get_learned_channels(0x29),
                          (1, 4, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x2A),
+        self.assertEqual(self.elero_device._get_learned_channels(0x2A),
                          (2, 4, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x2B),
+        self.assertEqual(self.elero_device._get_learned_channels(0x2B),
                          (1, 2, 4, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x2C),
+        self.assertEqual(self.elero_device._get_learned_channels(0x2C),
                          (3, 4, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x2D),
+        self.assertEqual(self.elero_device._get_learned_channels(0x2D),
                          (1, 3, 4, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x2E),
+        self.assertEqual(self.elero_device._get_learned_channels(0x2E),
                          (2, 3, 4, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x2F),
+        self.assertEqual(self.elero_device._get_learned_channels(0x2F),
                          (1, 2, 3, 4, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x30),
+        self.assertEqual(self.elero_device._get_learned_channels(0x30),
                          (5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x31),
+        self.assertEqual(self.elero_device._get_learned_channels(0x31),
                          (1, 5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x32),
+        self.assertEqual(self.elero_device._get_learned_channels(0x32),
                          (2, 5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x33),
+        self.assertEqual(self.elero_device._get_learned_channels(0x33),
                          (1, 2, 5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x34),
+        self.assertEqual(self.elero_device._get_learned_channels(0x34),
                          (3, 5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x35),
+        self.assertEqual(self.elero_device._get_learned_channels(0x35),
                          (1, 3, 5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x36),
+        self.assertEqual(self.elero_device._get_learned_channels(0x36),
                          (2, 3, 5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x37),
+        self.assertEqual(self.elero_device._get_learned_channels(0x37),
                          (1, 2, 3, 5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x38),
+        self.assertEqual(self.elero_device._get_learned_channels(0x38),
                          (4, 5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x39),
+        self.assertEqual(self.elero_device._get_learned_channels(0x39),
                          (1, 4, 5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x3A),
+        self.assertEqual(self.elero_device._get_learned_channels(0x3A),
                          (2, 4, 5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x3B),
+        self.assertEqual(self.elero_device._get_learned_channels(0x3B),
                          (1, 2, 4, 5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x3C),
+        self.assertEqual(self.elero_device._get_learned_channels(0x3C),
                          (3, 4, 5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x3D),
+        self.assertEqual(self.elero_device._get_learned_channels(0x3D),
                          (1, 3, 4, 5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x3E),
+        self.assertEqual(self.elero_device._get_learned_channels(0x3E),
                          (2, 3, 4, 5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x3F),
+        self.assertEqual(self.elero_device._get_learned_channels(0x3F),
                          (1, 2, 3, 4, 5, 6))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x40),
+        self.assertEqual(self.elero_device._get_learned_channels(0x40),
                          (7,))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x41),
+        self.assertEqual(self.elero_device._get_learned_channels(0x41),
                          (1, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x42),
+        self.assertEqual(self.elero_device._get_learned_channels(0x42),
                          (2, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x43),
+        self.assertEqual(self.elero_device._get_learned_channels(0x43),
                          (1, 2, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x44),
+        self.assertEqual(self.elero_device._get_learned_channels(0x44),
                          (3, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x45),
+        self.assertEqual(self.elero_device._get_learned_channels(0x45),
                          (1, 3, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x46),
+        self.assertEqual(self.elero_device._get_learned_channels(0x46),
                          (2, 3, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x47),
+        self.assertEqual(self.elero_device._get_learned_channels(0x47),
                          (1, 2, 3, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x48),
+        self.assertEqual(self.elero_device._get_learned_channels(0x48),
                          (4, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x49),
+        self.assertEqual(self.elero_device._get_learned_channels(0x49),
                          (1, 4, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x4A),
+        self.assertEqual(self.elero_device._get_learned_channels(0x4A),
                          (2, 4, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x4B),
+        self.assertEqual(self.elero_device._get_learned_channels(0x4B),
                          (1, 2, 4, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x4C),
+        self.assertEqual(self.elero_device._get_learned_channels(0x4C),
                          (3, 4, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x4D),
+        self.assertEqual(self.elero_device._get_learned_channels(0x4D),
                          (1, 3, 4, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x4E),
+        self.assertEqual(self.elero_device._get_learned_channels(0x4E),
                          (2, 3, 4, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x4F),
+        self.assertEqual(self.elero_device._get_learned_channels(0x4F),
                          (1, 2, 3, 4, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x50),
+        self.assertEqual(self.elero_device._get_learned_channels(0x50),
                          (5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x51),
+        self.assertEqual(self.elero_device._get_learned_channels(0x51),
                          (1, 5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x52),
+        self.assertEqual(self.elero_device._get_learned_channels(0x52),
                          (2, 5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x53),
+        self.assertEqual(self.elero_device._get_learned_channels(0x53),
                          (1, 2, 5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x54),
+        self.assertEqual(self.elero_device._get_learned_channels(0x54),
                          (3, 5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x55),
+        self.assertEqual(self.elero_device._get_learned_channels(0x55),
                          (1, 3, 5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x56),
+        self.assertEqual(self.elero_device._get_learned_channels(0x56),
                          (2, 3, 5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x57),
+        self.assertEqual(self.elero_device._get_learned_channels(0x57),
                          (1, 2, 3, 5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x58),
+        self.assertEqual(self.elero_device._get_learned_channels(0x58),
                          (4, 5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x59),
+        self.assertEqual(self.elero_device._get_learned_channels(0x59),
                          (1, 4, 5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x5A),
+        self.assertEqual(self.elero_device._get_learned_channels(0x5A),
                          (2, 4, 5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x5B),
+        self.assertEqual(self.elero_device._get_learned_channels(0x5B),
                          (1, 2, 4, 5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x5C),
+        self.assertEqual(self.elero_device._get_learned_channels(0x5C),
                          (3, 4, 5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x5D),
+        self.assertEqual(self.elero_device._get_learned_channels(0x5D),
                          (1, 3, 4, 5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x5E),
+        self.assertEqual(self.elero_device._get_learned_channels(0x5E),
                          (2, 3, 4, 5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x5F),
+        self.assertEqual(self.elero_device._get_learned_channels(0x5F),
                          (1, 2, 3, 4, 5, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x60),
+        self.assertEqual(self.elero_device._get_learned_channels(0x60),
                          (6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x61),
+        self.assertEqual(self.elero_device._get_learned_channels(0x61),
                          (1, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x62),
+        self.assertEqual(self.elero_device._get_learned_channels(0x62),
                          (2, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x63),
+        self.assertEqual(self.elero_device._get_learned_channels(0x63),
                          (1, 2, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x64),
+        self.assertEqual(self.elero_device._get_learned_channels(0x64),
                          (3, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x65),
+        self.assertEqual(self.elero_device._get_learned_channels(0x65),
                          (1, 3, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x66),
+        self.assertEqual(self.elero_device._get_learned_channels(0x66),
                          (2, 3, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x67),
+        self.assertEqual(self.elero_device._get_learned_channels(0x67),
                          (1, 2, 3, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x68),
+        self.assertEqual(self.elero_device._get_learned_channels(0x68),
                          (4, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x69),
+        self.assertEqual(self.elero_device._get_learned_channels(0x69),
                          (1, 4, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x6A),
+        self.assertEqual(self.elero_device._get_learned_channels(0x6A),
                          (2, 4, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x6B),
+        self.assertEqual(self.elero_device._get_learned_channels(0x6B),
                          (1, 2, 4, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x6C),
+        self.assertEqual(self.elero_device._get_learned_channels(0x6C),
                          (3, 4, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x6D),
+        self.assertEqual(self.elero_device._get_learned_channels(0x6D),
                          (1, 3, 4, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x6E),
+        self.assertEqual(self.elero_device._get_learned_channels(0x6E),
                          (2, 3, 4, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x6F),
+        self.assertEqual(self.elero_device._get_learned_channels(0x6F),
                          (1, 2, 3, 4, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x70),
+        self.assertEqual(self.elero_device._get_learned_channels(0x70),
                          (5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x71),
+        self.assertEqual(self.elero_device._get_learned_channels(0x71),
                          (1, 5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x72),
+        self.assertEqual(self.elero_device._get_learned_channels(0x72),
                          (2, 5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x73),
+        self.assertEqual(self.elero_device._get_learned_channels(0x73),
                          (1, 2, 5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x74),
+        self.assertEqual(self.elero_device._get_learned_channels(0x74),
                          (3, 5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x75),
+        self.assertEqual(self.elero_device._get_learned_channels(0x75),
                          (1, 3, 5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x76),
+        self.assertEqual(self.elero_device._get_learned_channels(0x76),
                          (2, 3, 5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x77),
+        self.assertEqual(self.elero_device._get_learned_channels(0x77),
                          (1, 2, 3, 5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x78),
+        self.assertEqual(self.elero_device._get_learned_channels(0x78),
                          (4, 5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x79),
+        self.assertEqual(self.elero_device._get_learned_channels(0x79),
                          (1, 4, 5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x7A),
+        self.assertEqual(self.elero_device._get_learned_channels(0x7A),
                          (2, 4, 5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x7B),
+        self.assertEqual(self.elero_device._get_learned_channels(0x7B),
                          (1, 2, 4, 5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x7C),
+        self.assertEqual(self.elero_device._get_learned_channels(0x7C),
                          (3, 4, 5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x7D),
+        self.assertEqual(self.elero_device._get_learned_channels(0x7D),
                          (1, 3, 4, 5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x7E),
+        self.assertEqual(self.elero_device._get_learned_channels(0x7E),
                          (2, 3, 4, 5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x7F),
+        self.assertEqual(self.elero_device._get_learned_channels(0x7F),
                          (1, 2, 3, 4, 5, 6, 7))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x80),
+        self.assertEqual(self.elero_device._get_learned_channels(0x80),
                          (8,))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x81),
+        self.assertEqual(self.elero_device._get_learned_channels(0x81),
                          (1, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x82),
+        self.assertEqual(self.elero_device._get_learned_channels(0x82),
                          (2, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x83),
+        self.assertEqual(self.elero_device._get_learned_channels(0x83),
                          (1, 2, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x84),
+        self.assertEqual(self.elero_device._get_learned_channels(0x84),
                          (3, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x85),
+        self.assertEqual(self.elero_device._get_learned_channels(0x85),
                          (1, 3, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x86),
+        self.assertEqual(self.elero_device._get_learned_channels(0x86),
                          (2, 3, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x87),
+        self.assertEqual(self.elero_device._get_learned_channels(0x87),
                          (1, 2, 3, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x88),
+        self.assertEqual(self.elero_device._get_learned_channels(0x88),
                          (4, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x89),
+        self.assertEqual(self.elero_device._get_learned_channels(0x89),
                          (1, 4, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x8A),
+        self.assertEqual(self.elero_device._get_learned_channels(0x8A),
                          (2, 4, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x8B),
+        self.assertEqual(self.elero_device._get_learned_channels(0x8B),
                          (1, 2, 4, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x8C),
+        self.assertEqual(self.elero_device._get_learned_channels(0x8C),
                          (3, 4, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x8D),
+        self.assertEqual(self.elero_device._get_learned_channels(0x8D),
                          (1, 3, 4, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x8E),
+        self.assertEqual(self.elero_device._get_learned_channels(0x8E),
                          (2, 3, 4, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x8F),
+        self.assertEqual(self.elero_device._get_learned_channels(0x8F),
                          (1, 2, 3, 4, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x90),
+        self.assertEqual(self.elero_device._get_learned_channels(0x90),
                          (5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x91),
+        self.assertEqual(self.elero_device._get_learned_channels(0x91),
                          (1, 5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x92),
+        self.assertEqual(self.elero_device._get_learned_channels(0x92),
                          (2, 5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x93),
+        self.assertEqual(self.elero_device._get_learned_channels(0x93),
                          (1, 2, 5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x94),
+        self.assertEqual(self.elero_device._get_learned_channels(0x94),
                          (3, 5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x95),
+        self.assertEqual(self.elero_device._get_learned_channels(0x95),
                          (1, 3, 5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x96),
+        self.assertEqual(self.elero_device._get_learned_channels(0x96),
                          (2, 3, 5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x97),
+        self.assertEqual(self.elero_device._get_learned_channels(0x97),
                          (1, 2, 3, 5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x98),
+        self.assertEqual(self.elero_device._get_learned_channels(0x98),
                          (4, 5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x99),
+        self.assertEqual(self.elero_device._get_learned_channels(0x99),
                          (1, 4, 5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x9A),
+        self.assertEqual(self.elero_device._get_learned_channels(0x9A),
                          (2, 4, 5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x9B),
+        self.assertEqual(self.elero_device._get_learned_channels(0x9B),
                          (1, 2, 4, 5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x9C),
+        self.assertEqual(self.elero_device._get_learned_channels(0x9C),
                          (3, 4, 5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x9D),
+        self.assertEqual(self.elero_device._get_learned_channels(0x9D),
                          (1, 3, 4, 5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x9E),
+        self.assertEqual(self.elero_device._get_learned_channels(0x9E),
                          (2, 3, 4, 5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x9F),
+        self.assertEqual(self.elero_device._get_learned_channels(0x9F),
                          (1, 2, 3, 4, 5, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xA0),
+        self.assertEqual(self.elero_device._get_learned_channels(0xA0),
                          (6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xA1),
+        self.assertEqual(self.elero_device._get_learned_channels(0xA1),
                          (1, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xA2),
+        self.assertEqual(self.elero_device._get_learned_channels(0xA2),
                          (2, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xA3),
+        self.assertEqual(self.elero_device._get_learned_channels(0xA3),
                          (1, 2, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xA4),
+        self.assertEqual(self.elero_device._get_learned_channels(0xA4),
                          (3, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xA5),
+        self.assertEqual(self.elero_device._get_learned_channels(0xA5),
                          (1, 3, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xA6),
+        self.assertEqual(self.elero_device._get_learned_channels(0xA6),
                          (2, 3, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xA7),
+        self.assertEqual(self.elero_device._get_learned_channels(0xA7),
                          (1, 2, 3, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xA8),
+        self.assertEqual(self.elero_device._get_learned_channels(0xA8),
                          (4, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xA9),
+        self.assertEqual(self.elero_device._get_learned_channels(0xA9),
                          (1, 4, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xAA),
+        self.assertEqual(self.elero_device._get_learned_channels(0xAA),
                          (2, 4, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xAB),
+        self.assertEqual(self.elero_device._get_learned_channels(0xAB),
                          (1, 2, 4, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xAC),
+        self.assertEqual(self.elero_device._get_learned_channels(0xAC),
                          (3, 4, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xAD),
+        self.assertEqual(self.elero_device._get_learned_channels(0xAD),
                          (1, 3, 4, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xAE),
+        self.assertEqual(self.elero_device._get_learned_channels(0xAE),
                          (2, 3, 4, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xAF),
+        self.assertEqual(self.elero_device._get_learned_channels(0xAF),
                          (1, 2, 3, 4, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xB0),
+        self.assertEqual(self.elero_device._get_learned_channels(0xB0),
                          (5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xB1),
+        self.assertEqual(self.elero_device._get_learned_channels(0xB1),
                          (1, 5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xB2),
+        self.assertEqual(self.elero_device._get_learned_channels(0xB2),
                          (2, 5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xB3),
+        self.assertEqual(self.elero_device._get_learned_channels(0xB3),
                          (1, 2, 5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xB4),
+        self.assertEqual(self.elero_device._get_learned_channels(0xB4),
                          (3, 5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xB5),
+        self.assertEqual(self.elero_device._get_learned_channels(0xB5),
                          (1, 3, 5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xB6),
+        self.assertEqual(self.elero_device._get_learned_channels(0xB6),
                          (2, 3, 5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xB7),
+        self.assertEqual(self.elero_device._get_learned_channels(0xB7),
                          (1, 2, 3, 5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xB8),
+        self.assertEqual(self.elero_device._get_learned_channels(0xB8),
                          (4, 5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xB9),
+        self.assertEqual(self.elero_device._get_learned_channels(0xB9),
                          (1, 4, 5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xBA),
+        self.assertEqual(self.elero_device._get_learned_channels(0xBA),
                          (2, 4, 5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xBB),
+        self.assertEqual(self.elero_device._get_learned_channels(0xBB),
                          (1, 2, 4, 5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xBC),
+        self.assertEqual(self.elero_device._get_learned_channels(0xBC),
                          (3, 4, 5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xBD),
+        self.assertEqual(self.elero_device._get_learned_channels(0xBD),
                          (1, 3, 4, 5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xBE),
+        self.assertEqual(self.elero_device._get_learned_channels(0xBE),
                          (2, 3, 4, 5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xBF),
+        self.assertEqual(self.elero_device._get_learned_channels(0xBF),
                          (1, 2, 3, 4, 5, 6, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xC0),
+        self.assertEqual(self.elero_device._get_learned_channels(0xC0),
                          (7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xC1),
+        self.assertEqual(self.elero_device._get_learned_channels(0xC1),
                          (1, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xC2),
+        self.assertEqual(self.elero_device._get_learned_channels(0xC2),
                          (2, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xC3),
+        self.assertEqual(self.elero_device._get_learned_channels(0xC3),
                          (1, 2, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xC4),
+        self.assertEqual(self.elero_device._get_learned_channels(0xC4),
                          (3, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xC5),
+        self.assertEqual(self.elero_device._get_learned_channels(0xC5),
                          (1, 3, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xC6),
+        self.assertEqual(self.elero_device._get_learned_channels(0xC6),
                          (2, 3, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xC7),
+        self.assertEqual(self.elero_device._get_learned_channels(0xC7),
                          (1, 2, 3, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xC8),
+        self.assertEqual(self.elero_device._get_learned_channels(0xC8),
                          (4, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xC9),
+        self.assertEqual(self.elero_device._get_learned_channels(0xC9),
                          (1, 4, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xCA),
+        self.assertEqual(self.elero_device._get_learned_channels(0xCA),
                          (2, 4, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xCB),
+        self.assertEqual(self.elero_device._get_learned_channels(0xCB),
                          (1, 2, 4, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xCC),
+        self.assertEqual(self.elero_device._get_learned_channels(0xCC),
                          (3, 4, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xCD),
+        self.assertEqual(self.elero_device._get_learned_channels(0xCD),
                          (1, 3, 4, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xCE),
+        self.assertEqual(self.elero_device._get_learned_channels(0xCE),
                          (2, 3, 4, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xCF),
+        self.assertEqual(self.elero_device._get_learned_channels(0xCF),
                          (1, 2, 3, 4, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xD0),
+        self.assertEqual(self.elero_device._get_learned_channels(0xD0),
                          (5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xD1),
+        self.assertEqual(self.elero_device._get_learned_channels(0xD1),
                          (1, 5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xD2),
+        self.assertEqual(self.elero_device._get_learned_channels(0xD2),
                          (2, 5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xD3),
+        self.assertEqual(self.elero_device._get_learned_channels(0xD3),
                          (1, 2, 5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xD4),
+        self.assertEqual(self.elero_device._get_learned_channels(0xD4),
                          (3, 5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xD5),
+        self.assertEqual(self.elero_device._get_learned_channels(0xD5),
                          (1, 3, 5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xD6),
+        self.assertEqual(self.elero_device._get_learned_channels(0xD6),
                          (2, 3, 5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xD7),
+        self.assertEqual(self.elero_device._get_learned_channels(0xD7),
                          (1, 2, 3, 5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xD8),
+        self.assertEqual(self.elero_device._get_learned_channels(0xD8),
                          (4, 5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xD9),
+        self.assertEqual(self.elero_device._get_learned_channels(0xD9),
                          (1, 4, 5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xDA),
+        self.assertEqual(self.elero_device._get_learned_channels(0xDA),
                          (2, 4, 5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xDB),
+        self.assertEqual(self.elero_device._get_learned_channels(0xDB),
                          (1, 2, 4, 5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xDC),
+        self.assertEqual(self.elero_device._get_learned_channels(0xDC),
                          (3, 4, 5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xDD),
+        self.assertEqual(self.elero_device._get_learned_channels(0xDD),
                          (1, 3, 4, 5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xDE),
+        self.assertEqual(self.elero_device._get_learned_channels(0xDE),
                          (2, 3, 4, 5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xDF),
+        self.assertEqual(self.elero_device._get_learned_channels(0xDF),
                          (1, 2, 3, 4, 5, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xE0),
+        self.assertEqual(self.elero_device._get_learned_channels(0xE0),
                          (6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xE1),
+        self.assertEqual(self.elero_device._get_learned_channels(0xE1),
                          (1, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xE2),
+        self.assertEqual(self.elero_device._get_learned_channels(0xE2),
                          (2, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xE3),
+        self.assertEqual(self.elero_device._get_learned_channels(0xE3),
                          (1, 2, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xE4),
+        self.assertEqual(self.elero_device._get_learned_channels(0xE4),
                          (3, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xE5),
+        self.assertEqual(self.elero_device._get_learned_channels(0xE5),
                          (1, 3, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xE6),
+        self.assertEqual(self.elero_device._get_learned_channels(0xE6),
                          (2, 3, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xE7),
+        self.assertEqual(self.elero_device._get_learned_channels(0xE7),
                          (1, 2, 3, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xE8),
+        self.assertEqual(self.elero_device._get_learned_channels(0xE8),
                          (4, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xE9),
+        self.assertEqual(self.elero_device._get_learned_channels(0xE9),
                          (1, 4, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xEA),
+        self.assertEqual(self.elero_device._get_learned_channels(0xEA),
                          (2, 4, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xEB),
+        self.assertEqual(self.elero_device._get_learned_channels(0xEB),
                          (1, 2, 4, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xEC),
+        self.assertEqual(self.elero_device._get_learned_channels(0xEC),
                          (3, 4, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xED),
+        self.assertEqual(self.elero_device._get_learned_channels(0xED),
                          (1, 3, 4, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xEE),
+        self.assertEqual(self.elero_device._get_learned_channels(0xEE),
                          (2, 3, 4, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xEF),
+        self.assertEqual(self.elero_device._get_learned_channels(0xEF),
                          (1, 2, 3, 4, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xF0),
+        self.assertEqual(self.elero_device._get_learned_channels(0xF0),
                          (5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xF1),
+        self.assertEqual(self.elero_device._get_learned_channels(0xF1),
                          (1, 5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xF2),
+        self.assertEqual(self.elero_device._get_learned_channels(0xF2),
                          (2, 5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xF3),
+        self.assertEqual(self.elero_device._get_learned_channels(0xF3),
                          (1, 2, 5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xF4),
+        self.assertEqual(self.elero_device._get_learned_channels(0xF4),
                          (3, 5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xF5),
+        self.assertEqual(self.elero_device._get_learned_channels(0xF5),
                          (1, 3, 5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xF6),
+        self.assertEqual(self.elero_device._get_learned_channels(0xF6),
                          (2, 3, 5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xF7),
+        self.assertEqual(self.elero_device._get_learned_channels(0xF7),
                          (1, 2, 3, 5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xF8),
+        self.assertEqual(self.elero_device._get_learned_channels(0xF8),
                          (4, 5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xF9),
+        self.assertEqual(self.elero_device._get_learned_channels(0xF9),
                          (1, 4, 5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xFA),
+        self.assertEqual(self.elero_device._get_learned_channels(0xFA),
                          (2, 4, 5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xFB),
+        self.assertEqual(self.elero_device._get_learned_channels(0xFB),
                          (1, 2, 4, 5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xFC),
+        self.assertEqual(self.elero_device._get_learned_channels(0xFC),
                          (3, 4, 5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xFD),
+        self.assertEqual(self.elero_device._get_learned_channels(0xFD),
                          (1, 3, 4, 5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xFE),
+        self.assertEqual(self.elero_device._get_learned_channels(0xFE),
                          (2, 3, 4, 5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0xFF),
+        self.assertEqual(self.elero_device._get_learned_channels(0xFF),
                          (1, 2, 3, 4, 5, 6, 7, 8))
-        self.assertEqual(self.elero_device._get_channels_from_response(0x100),
+        self.assertEqual(self.elero_device._get_learned_channels(0x100),
                          (9,))
+        self.assertEqual(self.elero_device._get_learned_channels(0x300),
+                         (9, 10))
+        self.assertEqual(self.elero_device._get_learned_channels(0x400),
+                         (11,))
+        self.assertEqual(self.elero_device._get_learned_channels(0x401),
+                         (1, 11))
+
+    def test_get_upper_channel_bits(self):
+        """Testing the _create_serial_data method."""
+        # ch: 1
+        resp = b'\xaa\x04N\x00\x01\x02'
+        self.assertEqual(self.elero_device._get_upper_channel_bits(
+            resp[3]), ())
+        self.assertEqual(self.elero_device._get_lower_channel_bits(
+            resp[4]), (1, ))
+        # ch: 10
+        resp = b'\xaa\x04N\x02\x00\x02'
+        self.assertEqual(self.elero_device._get_upper_channel_bits(
+            resp[3]), (10,))
+        self.assertEqual(self.elero_device._get_lower_channel_bits(
+            resp[4]), ())
+        # ch: 12
+        resp = b'\xaa\x05M\x08\x00\x01\xfb'
+        self.assertEqual(self.elero_device._get_upper_channel_bits(
+            resp[3]), (12,))
+        self.assertEqual(self.elero_device._get_lower_channel_bits(
+            resp[4]), ())
+        # ch: 13
+        resp = b'\xaa\x05M\x10\x00\x01\xf3'
+        self.assertEqual(self.elero_device._get_upper_channel_bits(
+            resp[3]), (13,))
+        self.assertEqual(self.elero_device._get_lower_channel_bits(
+            resp[4]), ())
 
     def test_verify_channel_same(self):
         """Testing the _create_serial_data method."""

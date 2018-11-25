@@ -243,8 +243,8 @@ class EleroDevice(object):
         """Create a hex list to the Info command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_4,
                     COMMAND_INFO,
-                    self._get_upper_channel_bits(),
-                    self._get_lower_channel_bits()]
+                    self._set_upper_channel_bits(),
+                    self._set_lower_channel_bits()]
         return int_list
 
     def info(self):
@@ -258,8 +258,8 @@ class EleroDevice(object):
         """Create a hex list to Open command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._get_upper_channel_bits(),
-                    self._get_lower_channel_bits(),
+                    self._set_upper_channel_bits(),
+                    self._set_lower_channel_bits(),
                     PAYLOAD_UP]
         return int_list
 
@@ -274,8 +274,8 @@ class EleroDevice(object):
         """Create a hex list to Close command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._get_upper_channel_bits(),
-                    self._get_lower_channel_bits(),
+                    self._set_upper_channel_bits(),
+                    self._set_lower_channel_bits(),
                     PAYLOAD_DOWN]
         return int_list
 
@@ -290,8 +290,8 @@ class EleroDevice(object):
         """Create a hex list to the Stop command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._get_upper_channel_bits(),
-                    self._get_lower_channel_bits(),
+                    self._set_upper_channel_bits(),
+                    self._set_lower_channel_bits(),
                     PAYLOAD_STOP]
         return int_list
 
@@ -306,8 +306,8 @@ class EleroDevice(object):
         """Create a hex list to the intermediate command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._get_upper_channel_bits(),
-                    self._get_lower_channel_bits(),
+                    self._set_upper_channel_bits(),
+                    self._set_lower_channel_bits(),
                     PAYLOAD_INTERMEDIATE_POS]
         return int_list
 
@@ -322,8 +322,8 @@ class EleroDevice(object):
         """Create a hex list to the ventilation command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._get_upper_channel_bits(),
-                    self._get_lower_channel_bits(),
+                    self._set_upper_channel_bits(),
+                    self._set_lower_channel_bits(),
                     PAYLOAD_VENTILATION_POS_TILTING]
         return int_list
 
@@ -356,10 +356,8 @@ class EleroDevice(object):
             self._response['header'] = ser_resp[0]
             self._response['length'] = ser_resp[1]
             self._response['command'] = ser_resp[2]
-            self._response['ch_h'] = self._get_channels_from_response(
-                ser_resp[3])
-            self._response['ch_l'] = self._get_channels_from_response(
-                ser_resp[4])
+            self._response['ch_h'] = self._get_upper_channel_bits(ser_resp[3])
+            self._response['ch_l'] = self._get_lower_channel_bits(ser_resp[4])
             self._response['chs'] = set(
                 self._response['ch_h'] + self._response['ch_l'])
             self._response['cs'] = ser_resp[5]
@@ -399,21 +397,41 @@ class EleroDevice(object):
         bytes_data = bytes(int_list)
         return bytes_data
 
-    def _get_upper_channel_bits(self):
+    def _set_upper_channel_bits(self):
         """Set upper channel bits, for channel 9 to 15."""
         res = 0
         for ch in self._channels:
             res |= (1 << (ch-1)) >> BIT_8
         return res
 
-    def _get_lower_channel_bits(self):
+    def _set_lower_channel_bits(self):
         """Set lower channel bits, for channel 1 to 8."""
         res = 0
         for ch in self._channels:
             res |= (1 << (ch-1)) & HEX_255
         return res
 
-    def _get_channels_from_response(self, byt):
+    def _get_upper_channel_bits(self, byt):
+        """The set channel numbers from 9 to 15."""
+        channels = []
+        for i in range(0, 8):
+            if (byt >> i) & 1 == 1:
+                ch = i + 9
+                channels.append(ch)
+
+        return tuple(channels)
+
+    def _get_lower_channel_bits(self, byt):
+        """The set channel numbers from 1 to 8."""
+        channels = []
+        for i in range(0, 8):
+            if (byt >> i) & 1 == 1:
+                ch = i + 1
+                channels.append(ch)
+
+        return tuple(channels)
+
+    def _get_learned_channels(self, byt):
         """The set channel numbers based on the bit mask."""
         channels = []
         for i in range(0, 16):
