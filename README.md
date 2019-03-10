@@ -27,19 +27,14 @@ This is why you use the HA cover group.
 # Elero features
 
 The Elero Transmitter stick supports the following Elero device features:
-- up*
-- down*
-- stop*
-- tilt*
-    - open*
-    - close*
-    - stop*
-- intermediate position*
-- ventilation / turning position*
+- up
+- down
+- stop
+- tilt
+    - open (intermediate position)
+    - close (ventilation / turning position)
+    - stop
 
-*implemented
-
-**not implemented or not functional fully/correctly
 
 ---
 
