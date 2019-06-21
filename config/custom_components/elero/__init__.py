@@ -9,7 +9,8 @@ import logging
 import homeassistant.helpers.config_validation as cv
 import serial
 import voluptuous as vol
-from homeassistant.const import CONF_PORT, EVENT_HOMEASSISTANT_STOP
+from homeassistant.const import EVENT_HOMEASSISTANT_STOP
+from serial.tools import list_ports
 
 # Python libraries/modules that you would normally install for your component.
 REQUIREMENTS = ['pyserial==3.4']
@@ -22,19 +23,22 @@ _LOGGER = logging.getLogger(__name__)
 # The domain of your component. Equal to the filename of your component.
 DOMAIN = 'elero'
 
-# The Transmitter device.
+# The connected Transmitter devices.
 ELERO_TRANSMITTERS = None
 
 # Configs to the serial connection.
 CONF_TRANSMITTERS = 'transmitters'
-CONF_TRANSMITTER_ID = 'transmitter_id'
+CONF_TRANSMITTER_SERIAL_NUMBER = 'serial_number'
 CONF_BAUDRATE = 'baudrate'
 CONF_BYTESIZE = 'bytesize'
 CONF_PARITY = 'parity'
 CONF_STOPBITS = 'stopbits'
 
+# Default serial info
+DEFAULT_BRAND = 'elero'
+DEFAULT_PRODUCT = 'Transmitter Stick'
+
 # Default serial connection details.
-DEFAULT_PORT = '/dev/ttyUSB0'
 DEFAULT_BAUDRATE = 38400
 DEFAULT_BYTESIZE = serial.EIGHTBITS
 DEFAULT_PARITY = serial.PARITY_NONE
@@ -119,8 +123,7 @@ INFO = {0x00: INFO_NO_INFORMATION,
         }
 
 ELERO_TRANSMITTER_SCHEMA = vol.Schema({
-    vol.Required(CONF_TRANSMITTER_ID): cv.positive_int,
-    vol.Required(CONF_PORT, default=DEFAULT_PORT): str,
+    vol.Optional(CONF_TRANSMITTER_SERIAL_NUMBER): str,
     vol.Optional(CONF_BAUDRATE, default=DEFAULT_BAUDRATE): cv.positive_int,
     vol.Optional(CONF_BYTESIZE, default=DEFAULT_BYTESIZE): cv.positive_int,
     vol.Optional(CONF_PARITY, default=DEFAULT_PARITY): str,
@@ -130,7 +133,7 @@ ELERO_TRANSMITTER_SCHEMA = vol.Schema({
 # Validation of the user's configuration.
 CONFIG_SCHEMA = vol.Schema({
     DOMAIN: vol.Schema({
-        vol.Required(CONF_TRANSMITTERS): [ELERO_TRANSMITTER_SCHEMA],
+        vol.Optional(CONF_TRANSMITTERS): [ELERO_TRANSMITTER_SCHEMA],
     }),
 }, extra=vol.ALLOW_EXTRA)
 
@@ -138,19 +141,10 @@ CONFIG_SCHEMA = vol.Schema({
 def setup(hass, config):
     """Set up is called when Home Assistant is loading our component."""
     global ELERO_TRANSMITTERS
-    ELERO_TRANSMITTERS = EleroTransmitters()
     elero_config = config.get(DOMAIN)
-    for transmitter in elero_config.get(CONF_TRANSMITTERS):
-        transmitter_id = transmitter.get(CONF_TRANSMITTER_ID)
-        elero_transmitter = EleroTransmitter(transmitter_id,
-                                             transmitter.get(CONF_PORT),
-                                             transmitter.get(CONF_BAUDRATE),
-                                             transmitter.get(CONF_BYTESIZE),
-                                             transmitter.get(CONF_PARITY),
-                                             transmitter.get(CONF_STOPBITS))
-        if elero_transmitter.get_transmitter_state():
-            ELERO_TRANSMITTERS.add_trasmitter(transmitter_id,
-                                              elero_transmitter)
+    transmitters_config = elero_config.get(CONF_TRANSMITTERS)
+    ELERO_TRANSMITTERS = EleroTransmitters(transmitters_config)
+    ELERO_TRANSMITTERS.discover()
 
     def close_serial_ports():
         """Close the serial port."""
@@ -163,43 +157,69 @@ def setup(hass, config):
 
 
 class EleroTransmitters(object):
-    """Representation of an Elero Centero USB Transmitter Stick."""
+    """Container for the Elero Centero USB Transmitter Sticks."""
 
-    def __init__(self):
+    def __init__(self, config):
         """Initialize the usb sticks."""
+        self.config = config
         self.transmitters = {}
 
-    def add_trasmitter(self, transmitter_id, transmitter):
-        """Store a transmitter."""
-        if transmitter_id not in self.transmitters:
-            self.transmitters[transmitter_id] = transmitter
-        else:
-            _LOGGER.error("Elero - '%s' transmitter ID is already added!",
-                          transmitter_id)
+    def discover(self):
+        """Discover the connected Elero Transmitter Sticks."""
+        for cp in list_ports.comports():
+            if (cp and cp.manufacturer and DEFAULT_BRAND in cp.manufacturer and
+                    cp.product and DEFAULT_PRODUCT in cp.product):
+                _LOGGER.info(
+                    "Elero - an Elero Transmitter Stick is found on port: '{}'"
+                    " with serial number: '{}'"
+                    .format(cp.device, cp.serial_number))
 
-    def get_transmitter(self, transmitter_id):
+                if (self.config and cp.serial_number and
+                        cp.serial_number in self.config):
+                    baudrate = self.config[cp.serial_number].get(CONF_BAUDRATE)
+                    bytesize = self.config[cp.serial_number].get(CONF_BYTESIZE)
+                    parity = self.config[cp.serial_number].get(CONF_PARITY)
+                    stopbits = self.config[cp.serial_number].get(CONF_STOPBITS)
+                else:
+                    baudrate = DEFAULT_BAUDRATE
+                    bytesize = DEFAULT_BYTESIZE
+                    parity = DEFAULT_PARITY
+                    stopbits = DEFAULT_STOPBITS
+
+                elero_transmitter = EleroTransmitter(
+                    cp, baudrate, bytesize, parity, stopbits)
+
+                if elero_transmitter.get_transmitter_state():
+                    if cp.serial_number not in self.transmitters:
+                        self.transmitters[cp.serial_number] = elero_transmitter
+                    else:
+                        _LOGGER.error(
+                            "Elero - '{}' transmitter is already added!"
+                            .format(cp.serial_number))
+
+    def get_transmitter(self, serial_number):
         """Return the given transmitter."""
-        if transmitter_id in self.transmitters:
-            return self.transmitters[transmitter_id]
+        if serial_number in self.transmitters:
+            return self.transmitters[serial_number]
         else:
-            _LOGGER.error("Elero - the transmitter ID '%s' is not exist!",
-                          transmitter_id)
+            _LOGGER.error("Elero - the transmitter '{}' is not exist!"
+                          .format(serial_number))
             return None
 
     def close_transmitters(self):
         """Close the serial connection of the transmitters."""
-        for id, t in self.transmitters.items():
+        for sn, t in self.transmitters.items():
             t.close_serial()
 
 
 class EleroTransmitter(object):
     """Representation of an Elero Centero USB Transmitter Stick."""
 
-    def __init__(self, transmitter_id, port, baudrate, bytesize, parity,
-                 stopbits):
+    def __init__(self, serial_port, baudrate, bytesize, parity, stopbits):
         """Initialization of a elero transmitter."""
-        self._transmitter_id = transmitter_id
-        self._port = port
+        self.serial_port = serial_port
+        self._serial_number = self.serial_port.serial_number
+        self._port = self.serial_port.device
         self._baudrate = baudrate
         self._bytesize = bytesize
         self._parity = parity
@@ -210,7 +230,7 @@ class EleroTransmitter(object):
         # response data container
         self._reset_response()
         # get the learned channels from the transmitter
-        self._learned_channels = set()
+        self._learned_channels = set()  # TODO
         if self._serial:
             self.check()
 
@@ -221,9 +241,15 @@ class EleroTransmitter(object):
                                          self._bytesize, self._parity,
                                          self._stopbits)
         except serial.serialutil.SerialException as exc:
-            _LOGGER.exception("Elero - Unable to open serial port for '%s' to"
-                              "Elero USB Stick: '%s'",
-                              self._transmitter_id, exc)
+            _LOGGER.exception("Elero - unable to open serial port for '{}' to"
+                              "the Transmitter Stick: '{}'"
+                              .format(self._serial_number, exc))
+
+    def log_out_serial_port_details(self):
+        """Log out the details of the serial connection."""
+        details = self.serial_port.__dict__
+        _LOGGER.debug("Elero - transmitter stick on port '{}' details: {}"
+                      .format(self._port, details))
 
     def close_serial(self):
         """Close the serial connection of the transmitter."""
@@ -246,9 +272,9 @@ class EleroTransmitter(object):
                           'cs': None,
                           }
 
-    def get_transmitter_id(self):
+    def get_serial_number(self):
         """Return the ID of the transmitter."""
-        return self._transmitter_id
+        return self._serial_number
 
     def _get_check_command(self):
         """Create a hex list to Check command."""
@@ -375,9 +401,9 @@ class EleroTransmitter(object):
         if not self._serial.isOpen():
             self._serial.open()
         ser_resp = self._serial.read(resp_length)
-        _LOGGER.debug("Elero - transmitter: '%s' ch: '%s' "
-                      "serial response: '%s'",
-                      self._transmitter_id, channels, ser_resp)
+        _LOGGER.debug("Elero - transmitter: '{}' ch: '{}' "
+                      "serial response: '{}'"
+                      .format(self._serial_number, channels, ser_resp))
         return ser_resp
 
     def _parse_response(self, ser_resp, channels):
@@ -406,15 +432,15 @@ class EleroTransmitter(object):
                 self._response['status'] = INFO[ser_resp[5]]
             else:
                 self._response['status'] = INFO_UNKNOWN
-                _LOGGER.warning("Elero - transmitter: '%s' ch: '%s' "
-                                "status is unknown: '%s'",
-                                self._transmitter_id, channels,
-                                ser_resp[5])
+                _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
+                                "status is unknown: '{}'"
+                                .format(self._serial_number, channels,
+                                        ser_resp[5]))
             self._response['cs'] = ser_resp[6]
         else:
-            _LOGGER.warning("Elero - transmitter: '%s' ch: '%s' "
-                            "unknown response: '%s'",
-                            self._transmitter_id, channels, ser_resp)
+            _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
+                            "unknown response: '{}'"
+                            .format(self._serial_number, channels, ser_resp))
             self._response['status'] = INFO_UNKNOWN
 
     def get_response(self, resp_length, channels):
@@ -427,9 +453,9 @@ class EleroTransmitter(object):
         """Write out a command to the serial port."""
         int_list.append(self._calculate_checksum(*int_list))
         bytes_data = self._create_serial_data(int_list)
-        _LOGGER.debug("Elero - transmitter: '%s' ch: '%s' "
-                      "serial command: '%s'",
-                      self._transmitter_id, channels, bytes_data)
+        _LOGGER.debug("Elero - transmitter: '{}' ch: '{}' "
+                      "serial command: '{}'"
+                      .format(self._serial_number, channels, bytes_data))
         if not self._serial.isOpen():
             self._serial.open()
         self._serial.write(bytes_data)
@@ -500,6 +526,6 @@ class EleroTransmitter(object):
             return True
         else:
             _LOGGER.warning("Elero - the channels are not matched! "
-                            "HA ch: '%s' response ch: '%s'",
-                            channels, self._response['chs'])
+                            "HA ch: '{}' response ch: '{}'"
+                            .format(channels, self._response['chs']))
             return False

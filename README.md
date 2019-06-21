@@ -19,10 +19,10 @@ The Elero Transmitter Stick is a 15-channel handheld radio transmitter for bidir
 
 To use the receiver control of the Home Assistant, at least one receiver must be taught-in into the Elero Transmitter Stick. For further details of the learning procedure please visit the [Elero's Downloads webpage](https://www.elero.com/en/downloads-service/downloads/) and find the [Centero Operation instruction](https://www.elero.com/en/downloads-service/downloads/?tx_avelero_downloads%5Bdownload%5D=319&tx_avelero_downloads%5Baction%5D=download&cHash=5cf4212966ff0d58470d8cc9aa029066)
 
+
 # Limitations
 
-1. According to the documentation of the Elero USB Transmitter I should control more covers with one command. However, It is not working for me yet. This causes many timing and control problems. I will try to solve it as soon as I know.
-This is why you use the HA cover group.
+1. According to the documentation of the Elero USB Transmitter I should control more covers with one command. However, It is not working for me yet. This causes many timing and control problems. I will try to solve it as soon as I know. The Elero company has so far given no answer to my question about this error.
 
 # Elero features
 
@@ -39,21 +39,16 @@ The Elero Transmitter stick supports the following Elero device features:
 ---
 
 # Configuration of Elero platform
-You can use as many transmitter as you want. So, you can control more than 15 devices.
-You need to configure every Elero USB Transmitter sticks in your installation, add and setup the following settings to your `configuration.yaml` file to every stick:
+You can use as many transmitters as you want. So, you can control more than 15 devices.
+You can configure every Elero USB Transmitter stick in your installation, add and setup the following settings to your `configuration.yaml` file to every stick:
 
-- **transmitter_id:**
-    - **description:** The ID (number) of the given Elero Transmitter Stick.
-    - **required:** true
-    - **type:** integer
-    - **default:** -
-- **port:**
-    - **description:** Name of the serial port to the Elero Transmitter Stick.
+- **serial_number:**
+    - **description:** The serial number of the given Elero Transmitter Stick.
     - **required:** false
     - **type:** string
-    - **default:** "/dev/ttyUSB0"
+    - **default:** -
 - **baudrate:**
-    - **description:** You configure BaudRate as bits per second.
+    - **description:** BaudRate as bits per second.
     - **required:** false
     - **type:** integer
     - **default:** 38400
@@ -73,7 +68,10 @@ You need to configure every Elero USB Transmitter sticks in your installation, a
     - **type:** integer
     - **default:*** 1
 
-If you have only one device and it is plugged into the '/dev/ttyUSB0' USB port of your board you have to configure it with the following in the `configuration.yaml` file:
+
+The connected Elero transmitters are automatically recognized and set. The serial number of the given stick should be used to match a channel to the stick by you in the config file. You can find the serial numbers the HA log.
+
+You can configure the connected devices with the followings in the `configuration.yaml` file if it is needed:
 
 Example of the basic configuration:
 
@@ -81,8 +79,8 @@ Example of the basic configuration:
 # Example configuration.yaml entry
 elero:
     transmitters:
-        - transmitter_id: 1
-          port: '/dev/ttyUSB0'
+        - serial_number: 00000000
+          baudrate: 9600
 ```
 
 Example of the full configuration:
@@ -91,8 +89,7 @@ Example of the full configuration:
 # Example configuration.yaml entry
 elero:
     transmitters:
-        - transmitter_id: 1
-          port: '/dev/ttyUSB0'
+        - serial_number: 00000000
           baudrate: 38400
           bytesize: 8
           parity: 'N'
@@ -105,7 +102,7 @@ elero:
 
 To enable an Elero component like a covers in your installation, add the following to your `configuration.yaml` file:
 
-- **transmitter_id:**
+- **serial_number:**
     - **description:** The ID (number) of the given Elero Transmitter Stick. /
     The given channel is at that Elero USB Transmitter Stick.
     - **required:** true
@@ -143,11 +140,11 @@ To enable an Elero component like a covers in your installation, add the followi
         - up
         - down
         - stop
-        - set_position
+        - set_position (unsupported yet)
         - open_tilt
         - close_tilt
         - stop_tilt
-        - set_tilt_position
+        - set_tilt_position (unsupported yet)
 
 Example of a simple cover setup:
 ```yaml
@@ -156,7 +153,7 @@ cover:
     - platform: elero
       covers:
           bathroom_small:
-              transmitter_id: 1
+              serial_number: 00000000
               name: Shower
               channel: 1
               device_class: roller shutter
@@ -218,10 +215,10 @@ It is possible to specify triggers for automation of your covers.
 
 # Known issues:
 
-- ...
+Please see the Issues section: https://github.com/W00D00/home-assistant-elero/issues
 
 ---
 
-**If you have any question or you faced with trouble, do not hesitate to contact me, all comments, insight, criticism is welcomed!**
+**If you have any question or you have faced with trouble, do not hesitate to contact me, all comments, insight, criticism is welcomed!**
 
 ---

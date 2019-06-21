@@ -1,7 +1,7 @@
 - platform: elero
   covers:
     bathroom_small:
-        transmitter_id: 1
+        serial_number: 00000000
         name: 'bathroom_small'
         channel: 1
         device_class: roller shutter
@@ -11,7 +11,7 @@
             - stop
             - set_position
     guestroom:
-        transmitter_id: 1
+        serial_number: 00000000
         name: 'guestroom'
         channel: 2
         device_class: roller shutter
@@ -21,7 +21,7 @@
             - stop
             - set_position
     childrenroom:
-        transmitter_id: 1
+        serial_number: 00000000
         name: 'childrenroom'
         channel: 3
         device_class: venetian blind
@@ -35,7 +35,7 @@
             - stop_tilt
             - set_tilt_position
     bathroom_big:
-        transmitter_id: 1
+        serial_number: 00000000
         name: 'bathroom_big'
         channel: 4
         device_class: venetian blind
@@ -49,7 +49,7 @@
             - stop_tilt
             - set_tilt_position
     bedroom:
-        transmitter_id: 1
+        serial_number: 00000000
         name: 'bedroom'
         channel: 5
         device_class: venetian blind
@@ -63,7 +63,7 @@
             - stop_tilt
             - set_tilt_position
     livingroom:
-        transmitter_id: 1
+        serial_number: 00000000
         name: 'livingroom'
         channel: 6
         device_class: venetian blind
@@ -77,7 +77,7 @@
             - stop_tilt
             - set_tilt_position
     diningroom:
-        transmitter_id: 1
+        serial_number: 00000000
         name: 'diningroom'
         channel: 7
         device_class: venetian blind

@@ -6,10 +6,23 @@ https://home-assistant.io/components/cover.elero/
 """
 import logging
 
-import custom_components.elero as elero
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-from custom_components.elero import (CONF_TRANSMITTER_ID, INFO_BLOCKING,
+from homeassistant.components.cover import (ATTR_POSITION, ATTR_TILT_POSITION,
+                                            SUPPORT_CLOSE, SUPPORT_CLOSE_TILT,
+                                            SUPPORT_OPEN, SUPPORT_OPEN_TILT,
+                                            SUPPORT_SET_POSITION,
+                                            SUPPORT_SET_TILT_POSITION,
+                                            SUPPORT_STOP, SUPPORT_STOP_TILT,
+                                            CoverDevice)
+from homeassistant.components.light import PLATFORM_SCHEMA
+from homeassistant.const import (CONF_COVERS, CONF_DEVICE_CLASS, CONF_NAME,
+                                 STATE_CLOSED, STATE_CLOSING, STATE_OPEN,
+                                 STATE_OPENING, STATE_UNKNOWN)
+
+import custom_components.elero as elero
+from custom_components.elero import (CONF_TRANSMITTER_SERIAL_NUMBER,
+                                     INFO_BLOCKING,
                                      INFO_BOTTOM_POS_STOP_WICH_INT_POS,
                                      INFO_BOTTOM_POSITION_STOP,
                                      INFO_INTERMEDIATE_POSITION_STOP,
@@ -26,17 +39,6 @@ from custom_components.elero import (CONF_TRANSMITTER_ID, INFO_BLOCKING,
                                      INFO_TOP_POSITION_STOP,
                                      RESPONSE_LENGTH_INFO,
                                      RESPONSE_LENGTH_SEND)
-from homeassistant.components.cover import (ATTR_POSITION, ATTR_TILT_POSITION,
-                                            SUPPORT_CLOSE, SUPPORT_CLOSE_TILT,
-                                            SUPPORT_OPEN, SUPPORT_OPEN_TILT,
-                                            SUPPORT_SET_POSITION,
-                                            SUPPORT_SET_TILT_POSITION,
-                                            SUPPORT_STOP, SUPPORT_STOP_TILT,
-                                            CoverDevice)
-from homeassistant.components.light import PLATFORM_SCHEMA
-from homeassistant.const import (CONF_COVERS, CONF_DEVICE_CLASS, CONF_NAME,
-                                 STATE_CLOSED, STATE_CLOSING, STATE_OPEN,
-                                 STATE_OPENING, STATE_UNKNOWN)
 
 # Python libraries/modules that you would normally install for your component.
 REQUIREMENTS = []
@@ -92,7 +94,7 @@ CHANNEL_NUMBERS_SCHEMA = vol.All(vol.Coerce(int), vol.Range(min=1, max=15))
 
 # Validation of the user's configuration
 COVER_SCHEMA = vol.Schema({
-    vol.Required(CONF_TRANSMITTER_ID): cv.positive_int,
+    vol.Required(CONF_TRANSMITTER_SERIAL_NUMBER): str,
     vol.Required(CONF_NAME): str,
     vol.Required(CONF_CHANNELS): CHANNEL_NUMBERS_SCHEMA,
     vol.Required(CONF_DEVICE_CLASS): ELERO_COVER_DEVICE_CLASSES_SCHEMA,
@@ -111,14 +113,15 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     covers_conf = config.get(CONF_COVERS, {})
     for cover_name, cover_conf in covers_conf.items():
         transmitter = elero.ELERO_TRANSMITTERS.get_transmitter(
-            cover_conf.get(CONF_TRANSMITTER_ID))
+            cover_conf.get(CONF_TRANSMITTER_SERIAL_NUMBER))
         if not transmitter:
-            _LOGGER.error("Elero - the transmitter ID '%s' "
-                          "of the '%s' - '%s' channel is "
-                          "non-existent transmitter!",
-                          cover_conf.get(CONF_TRANSMITTER_ID),
-                          cover_conf.get(CONF_CHANNELS),
-                          cover_conf.get(CONF_NAME))
+            _LOGGER.error("Elero - the transmitter '{}' "
+                          "of the '{}' - '{}' channel is "
+                          "non-existent transmitter!"
+                          .format(
+                            cover_conf.get(CONF_TRANSMITTER_SERIAL_NUMBER),
+                            cover_conf.get(CONF_CHANNELS),
+                            cover_conf.get(CONF_NAME)))
             continue
         covers.append(EleroCover(
             hass,
@@ -261,11 +264,11 @@ class EleroCover(CoverDevice):
         """Move the cover to a specific position."""
         position = kwargs.get(ATTR_POSITION)
         self._set_position = round(position, -1)
-        _LOGGER.warning("Elero - transmitter: '%s' ch: '%s' "
+        _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
                         "The set cover position function is "
-                        "not implemented yet.",
-                        self._transmitter.get_transmitter_id(),
-                        self._channels)
+                        "not implemented yet."
+                        .format(self._transmitter.get_serial_number(),
+                                self._channels))
 
     def close_cover_tilt(self, **kwargs):
         """Close the cover tilt."""
@@ -289,11 +292,11 @@ class EleroCover(CoverDevice):
         """Move the cover tilt to a specific position."""
         tilt_position = kwargs.get(ATTR_TILT_POSITION)
         self._set_tilt_position = round(tilt_position, -1)
-        _LOGGER.warning("Elero - transmitter: '%s' ch: '%s' "
+        _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
                         "The set cover tilt position function is "
-                        "not implemented yet.",
-                        self._transmitter.get_transmitter_id(),
-                        self._channels)
+                        "not implemented yet."
+                        .format(self._transmitter.get_serial_number(),
+                                self._channels))
 
     def get_response(self, resp_length):
         """Set state variables based on device response."""
@@ -411,10 +414,10 @@ class EleroCover(CoverDevice):
             self._position = None
             self._tilt_position = None
             self._state = STATE_UNKNOWN
-            _LOGGER.warning("Elero - transmitter: '%s' ch: '%s' "
-                            "Error response: '%s'",
-                            self._transmitter.get_transmitter_id(),
-                            self._channels, self._response['status'])
+            _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
+                            "Error response: '{}'"
+                            .format(self._transmitter.get_serial_number(),
+                                    self._channels, self._response['status']))
         # INFO_SWITCHING_DEVICE_SWITCHED_ON, INFO_SWITCHING_DEVICE_SWITCHED_OFF
         elif self._response['status'] in (
                 INFO_SWITCHING_DEVICE_SWITCHED_ON,
@@ -432,7 +435,7 @@ class EleroCover(CoverDevice):
             self._position = None
             self._tilt_position = None
             self._state = STATE_UNKNOWN
-            _LOGGER.warning("Elero - transmitter: '%s' ch: '%s' "
-                            "Unhandled response: '%s'",
-                            self._transmitter.get_transmitter_id(),
-                            self._channels, self._response['status'])
+            _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
+                            "Unhandled response: '{}'"
+                            .format(self._transmitter.get_serial_number(),
+                                    self._channels, self._response['status']))

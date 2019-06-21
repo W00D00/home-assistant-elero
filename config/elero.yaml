@@ -1,3 +1,0 @@
-transmitters:
-    - transmitter_id: 1
-      port: '/dev/ttyUSB0'
