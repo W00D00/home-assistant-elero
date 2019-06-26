@@ -230,7 +230,7 @@ class EleroTransmitter(object):
         # response data container
         self._reset_response()
         # get the learned channels from the transmitter
-        self._learned_channels = set()  # TODO
+        self._learned_channels = {}
         if self._serial:
             self.check()
 
@@ -290,123 +290,130 @@ class EleroTransmitter(object):
         self._send_command(self._get_check_command(), 0)
         ser_resp = self._read_response(RESPONSE_LENGTH_CHECK, 0)
         self._parse_response(ser_resp, 0)
-        self._learned_channels = self._response['chs']
+        self._learned_channels = dict.fromkeys(self._response['chs'])
+        _LOGGER.debug("The taught channels on the '{}' transmitter are '{}'."
+                      .format(self._serial_number, ' '.join(
+                        map(str, list(self._learned_channels.keys())))))
         self._reset_response()
 
-    def is_learned_channel(self, channels):
-        """Verify the given channel is learned or not."""
-        if channels & self._learned_channels:
+    def set_channel(self, channel, obj):
+        """Set the channel if it is learned."""
+        if channel in self._learned_channels:
+            self._learned_channels[channel] = obj
             return True
         else:
-            return True
+            _LOGGER.error("The '{}' channel is not taught to the "
+                          "'{}' transmitter.".format(channel,
+                                                     self._serial_number))
+            return False
 
-    def _get_info_command(self, channels):
+    def _get_info_command(self, channel):
         """Create a hex list to the Info command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_4,
                     COMMAND_INFO,
-                    self._set_upper_channel_bits(channels),
-                    self._set_lower_channel_bits(channels)]
+                    self._set_upper_channel_bits(channel),
+                    self._set_lower_channel_bits(channel)]
         return int_list
 
-    def info(self, channels):
+    def info(self, channel):
         """Return the current state of the cover.
 
         Should be received an answer "Easy Act" with in 4 seconds.
         """
-        self._send_command(self._get_info_command(channels), channels)
+        self._send_command(self._get_info_command(channel), channel)
 
-    def _get_up_command(self, channels):
+    def _get_up_command(self, channel):
         """Create a hex list to Open command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._set_upper_channel_bits(channels),
-                    self._set_lower_channel_bits(channels),
+                    self._set_upper_channel_bits(channel),
+                    self._set_lower_channel_bits(channel),
                     PAYLOAD_UP]
         return int_list
 
-    def up(self, channels):
+    def up(self, channel):
         """Open the cover.
 
         Should be received an answer "Easy Act" with in 4 seconds.
         """
-        self._send_command(self._get_up_command(channels), channels)
+        self._send_command(self._get_up_command(channel), channel)
 
-    def _get_down_command(self, channels):
+    def _get_down_command(self, channel):
         """Create a hex list to Close command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._set_upper_channel_bits(channels),
-                    self._set_lower_channel_bits(channels),
+                    self._set_upper_channel_bits(channel),
+                    self._set_lower_channel_bits(channel),
                     PAYLOAD_DOWN]
         return int_list
 
-    def down(self, channels):
+    def down(self, channel):
         """Close the cover.
 
         Should be received an answer "Easy Act" with in 4 seconds.
         """
-        self._send_command(self._get_down_command(channels), channels)
+        self._send_command(self._get_down_command(channel), channel)
 
-    def _get_stop_command(self, channels):
+    def _get_stop_command(self, channel):
         """Create a hex list to the Stop command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._set_upper_channel_bits(channels),
-                    self._set_lower_channel_bits(channels),
+                    self._set_upper_channel_bits(channel),
+                    self._set_lower_channel_bits(channel),
                     PAYLOAD_STOP]
         return int_list
 
-    def stop(self, channels):
+    def stop(self, channel):
         """Stop the cover.
 
         Should be received an answer "Easy Act" with in 4 seconds.
         """
-        self._send_command(self._get_stop_command(channels), channels)
+        self._send_command(self._get_stop_command(channel), channel)
 
-    def _get_intermediate_command(self, channels):
+    def _get_intermediate_command(self, channel):
         """Create a hex list to the intermediate command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._set_upper_channel_bits(channels),
-                    self._set_lower_channel_bits(channels),
+                    self._set_upper_channel_bits(channel),
+                    self._set_lower_channel_bits(channel),
                     PAYLOAD_INTERMEDIATE_POS]
         return int_list
 
-    def intermediate(self, channels):
+    def intermediate(self, channel):
         """Set the cover in intermediate position.
 
         Should be received an answer "Easy Act" with in 4 seconds.
         """
-        self._send_command(self._get_intermediate_command(channels), channels)
+        self._send_command(self._get_intermediate_command(channel), channel)
 
-    def _get_ventilation_tilting_command(self, channels):
+    def _get_ventilation_tilting_command(self, channel):
         """Create a hex list to the ventilation command."""
         int_list = [BYTE_HEADER, BYTE_LENGTH_5,
                     COMMAND_SEND,
-                    self._set_upper_channel_bits(channels),
-                    self._set_lower_channel_bits(channels),
+                    self._set_upper_channel_bits(channel),
+                    self._set_lower_channel_bits(channel),
                     PAYLOAD_VENTILATION_POS_TILTING]
         return int_list
 
-    def ventilation_tilting(self, channels):
+    def ventilation_tilting(self, channel):
         """Set the cover in ventilation position.
 
         Should be received an answer "Easy Act" with in 4 seconds.
         """
-        self._send_command(self._get_ventilation_tilting_command(channels),
-                           channels)
+        self._send_command(self._get_ventilation_tilting_command(channel),
+                           channel)
 
-    def _read_response(self, resp_length, channels):
+    def _read_response(self, resp_length, channel):
         """Get the serial data from the serial port."""
         if not self._serial.isOpen():
             self._serial.open()
         ser_resp = self._serial.read(resp_length)
         _LOGGER.debug("Elero - transmitter: '{}' ch: '{}' "
                       "serial response: '{}'"
-                      .format(self._serial_number, channels, ser_resp))
+                      .format(self._serial_number, channel, ser_resp))
         return ser_resp
 
-    def _parse_response(self, ser_resp, channels):
+    def _parse_response(self, ser_resp, channel):
         """Parse the serial data as a response."""
         self._reset_response()
         self._response['bytes'] = ser_resp
@@ -434,28 +441,36 @@ class EleroTransmitter(object):
                 self._response['status'] = INFO_UNKNOWN
                 _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
                                 "status is unknown: '{}'"
-                                .format(self._serial_number, channels,
+                                .format(self._serial_number, channel,
                                         ser_resp[5]))
             self._response['cs'] = ser_resp[6]
         else:
             _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
                             "unknown response: '{}'"
-                            .format(self._serial_number, channels, ser_resp))
+                            .format(self._serial_number, channel, ser_resp))
             self._response['status'] = INFO_UNKNOWN
 
-    def get_response(self, resp_length, channels):
+    def get_response(self, resp_length, channel):
         """Read the response form the device."""
-        ser_resp = self._read_response(resp_length, channels)
-        self._parse_response(ser_resp, channels)
-        return self._response
+        ser_resp = self._read_response(resp_length, channel)
+        self._parse_response(ser_resp, channel)
+        # reply to the appropriate channel TODO
+        if len(self._response['chs']) == 1:
+            ch = self._response['chs'].pop()
+            # call back the channel with its result
+            self._learned_channels[ch](self._response)
+        else:
+            _LOGGER.error(
+                "Elero - The response contains more than one channel."
+                .format(self._response['chs']))
 
-    def _send_command(self, int_list, channels):
+    def _send_command(self, int_list, channel):
         """Write out a command to the serial port."""
         int_list.append(self._calculate_checksum(*int_list))
         bytes_data = self._create_serial_data(int_list)
         _LOGGER.debug("Elero - transmitter: '{}' ch: '{}' "
                       "serial command: '{}'"
-                      .format(self._serial_number, channels, bytes_data))
+                      .format(self._serial_number, channel, bytes_data))
         if not self._serial.isOpen():
             self._serial.open()
         self._serial.write(bytes_data)
@@ -472,18 +487,14 @@ class EleroTransmitter(object):
         bytes_data = bytes(int_list)
         return bytes_data
 
-    def _set_upper_channel_bits(self, channels):
+    def _set_upper_channel_bits(self, channel):
         """Set upper channel bits, for channel 9 to 15."""
-        res = 0
-        for ch in channels:
-            res |= (1 << (ch-1)) >> BIT_8
+        res = (1 << (channel-1)) >> BIT_8
         return res
 
-    def _set_lower_channel_bits(self, channels):
+    def _set_lower_channel_bits(self, channel):
         """Set lower channel bits, for channel 1 to 8."""
-        res = 0
-        for ch in channels:
-            res |= (1 << (ch-1)) & HEX_255
+        res = (1 << (channel-1)) & HEX_255
         return res
 
     def _get_upper_channel_bits(self, byt):
@@ -516,16 +527,16 @@ class EleroTransmitter(object):
 
         return tuple(channels)
 
-    def verify_channels(self, channels):
+    def verify_channel(self, channel):
         """Compare the response channel and the channel of the device.
 
         The answer is for this channel.
         """
         # TODO: check if the transmitter bug has disappeared
-        if channels == self._response['chs']:
+        if channel == self._response['chs']:
             return True
         else:
             _LOGGER.warning("Elero - the channels are not matched! "
                             "HA ch: '{}' response ch: '{}'"
-                            .format(channels, self._response['chs']))
+                            .format(channel, self._response['chs']))
             return False

@@ -56,7 +56,10 @@ POSITION_OPEN = 100
 
 ATTR_ELERO_STATE = 'elero_state'
 
-CONF_CHANNELS = 'channel'
+# Should be if the transmitter bug is corrected.
+CONF_CHANNELS = 'channels'
+# It is needed because of the transmitter has a channel handling bug.
+CONF_CHANNEL = 'channel'
 
 ELERO_COVER_DEVICE_CLASSES = {
     "venetian blind": 'window',
@@ -96,7 +99,7 @@ CHANNEL_NUMBERS_SCHEMA = vol.All(vol.Coerce(int), vol.Range(min=1, max=15))
 COVER_SCHEMA = vol.Schema({
     vol.Required(CONF_TRANSMITTER_SERIAL_NUMBER): str,
     vol.Required(CONF_NAME): str,
-    vol.Required(CONF_CHANNELS): CHANNEL_NUMBERS_SCHEMA,
+    vol.Required(CONF_CHANNEL): CHANNEL_NUMBERS_SCHEMA,
     vol.Required(CONF_DEVICE_CLASS): ELERO_COVER_DEVICE_CLASSES_SCHEMA,
     vol.Required(CONF_SUPPORTED_FEATURES): SUPPORTED_FEATURES_SCHEMA,
 })
@@ -120,14 +123,15 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
                           "non-existent transmitter!"
                           .format(
                             cover_conf.get(CONF_TRANSMITTER_SERIAL_NUMBER),
-                            cover_conf.get(CONF_CHANNELS),
+                            cover_conf.get(CONF_CHANNEL),
                             cover_conf.get(CONF_NAME)))
             continue
+
         covers.append(EleroCover(
             hass,
             transmitter,
             cover_conf.get(CONF_NAME),
-            cover_conf.get(CONF_CHANNELS),
+            cover_conf.get(CONF_CHANNEL),
             cover_conf.get(CONF_DEVICE_CLASS),
             cover_conf.get(CONF_SUPPORTED_FEATURES),
         ))
@@ -138,20 +142,21 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 class EleroCover(CoverDevice):
     """Representation of a Elero cover device."""
 
-    def __init__(self, hass, transmitter, name, channels, device_class,
+    def __init__(self, hass, transmitter, name, channel, device_class,
                  supported_features):
         """Init of a Elero cover."""
         self.hass = hass
         self._transmitter = transmitter
         self._name = name
-        self._channels = set((channels,))
+        self._channel = channel
         self._device_class = ELERO_COVER_DEVICE_CLASSES[device_class]
 
         self._supported_features = 0
         for f in supported_features:
             self._supported_features |= SUPPORTED_FEATURES[f]
 
-        self._available = self._transmitter.is_learned_channel(self._channels)
+        self._available = self._transmitter.set_channel(self._channel,
+                                                        self.response_handler)
         self._position = None
         self._set_position = None
         self._is_opening = None
@@ -239,26 +244,23 @@ class EleroCover(CoverDevice):
 
     def update(self):
         """Get the device sate and update its attributes and state."""
-        self._transmitter.info(self._channels)
-        self.get_response(RESPONSE_LENGTH_INFO)
+        self._transmitter.info(self._channel)
+        self.request_response(RESPONSE_LENGTH_INFO)
 
     def close_cover(self, **kwargs):
         """Close the cover."""
-        self._transmitter.down(self._channels)
-        self.get_response(RESPONSE_LENGTH_SEND)
-        self.schedule_update_ha_state()
+        self._transmitter.down(self._channel)
+        self.request_response(RESPONSE_LENGTH_SEND)
 
     def open_cover(self, **kwargs):
         """Open the cover."""
-        self._transmitter.up(self._channels)
-        self.get_response(RESPONSE_LENGTH_SEND)
-        self.schedule_update_ha_state()
+        self._transmitter.up(self._channel)
+        self.request_response(RESPONSE_LENGTH_SEND)
 
     def stop_cover(self, **kwargs):
         """Stop the cover."""
-        self._transmitter.stop(self._channels)
-        self.get_response(RESPONSE_LENGTH_SEND)
-        self.schedule_update_ha_state()
+        self._transmitter.stop(self._channel)
+        self.request_response(RESPONSE_LENGTH_SEND)
 
     def set_cover_position(self, **kwargs):
         """Move the cover to a specific position."""
@@ -268,25 +270,22 @@ class EleroCover(CoverDevice):
                         "The set cover position function is "
                         "not implemented yet."
                         .format(self._transmitter.get_serial_number(),
-                                self._channels))
+                                self._channel))
 
     def close_cover_tilt(self, **kwargs):
         """Close the cover tilt."""
-        self._transmitter.intermediate(self._channels)
-        self.get_response(RESPONSE_LENGTH_SEND)
-        self.schedule_update_ha_state()
+        self._transmitter.intermediate(self._channel)
+        self.request_response(RESPONSE_LENGTH_SEND)
 
     def open_cover_tilt(self, **kwargs):
         """Open the cover tilt."""
-        self._transmitter.ventilation_tilting(self._channels)
-        self.get_response(RESPONSE_LENGTH_SEND)
-        self.schedule_update_ha_state()
+        self._transmitter.ventilation_tilting(self._channel)
+        self.request_response(RESPONSE_LENGTH_SEND)
 
     def stop_cover_tilt(self, **kwargs):
         """Stop the cover tilt."""
-        self._transmitter.stop(self._channels)
-        self.get_response(RESPONSE_LENGTH_SEND)
-        self.schedule_update_ha_state()
+        self._transmitter.stop(self._channel)
+        self.request_response(RESPONSE_LENGTH_SEND)
 
     def set_cover_tilt_position(self, **kwargs):
         """Move the cover tilt to a specific position."""
@@ -296,18 +295,19 @@ class EleroCover(CoverDevice):
                         "The set cover tilt position function is "
                         "not implemented yet."
                         .format(self._transmitter.get_serial_number(),
-                                self._channels))
+                                self._channel))
 
-    def get_response(self, resp_length):
+    def request_response(self, resp_length):
         """Set state variables based on device response."""
-        self._response = self._transmitter.get_response(resp_length,
-                                                        self._channels)
+        self._transmitter.get_response(resp_length, self._channel)
+
+    def response_handler(self, response):
+        """Callback function to the response from the Transmitter."""
+        self._response = response
         self.set_states()
+        self.schedule_update_ha_state()
 
     def set_states(self):
-        # the response is not for this channel
-        if not self._transmitter.verify_channels(self._channels):
-            return
         self._elero_state = self._response['status']
         # INFO_NO_INFORMATION
         if self._response['status'] == INFO_NO_INFORMATION:
@@ -417,7 +417,7 @@ class EleroCover(CoverDevice):
             _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
                             "Error response: '{}'"
                             .format(self._transmitter.get_serial_number(),
-                                    self._channels, self._response['status']))
+                                    self._channel, self._response['status']))
         # INFO_SWITCHING_DEVICE_SWITCHED_ON, INFO_SWITCHING_DEVICE_SWITCHED_OFF
         elif self._response['status'] in (
                 INFO_SWITCHING_DEVICE_SWITCHED_ON,
@@ -438,4 +438,4 @@ class EleroCover(CoverDevice):
             _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
                             "Unhandled response: '{}'"
                             .format(self._transmitter.get_serial_number(),
-                                    self._channels, self._response['status']))
+                                    self._channel, self._response['status']))
