@@ -227,8 +227,6 @@ class EleroTransmitter(object):
         # setup the serial connection to the transmitter
         self._serial = None
         self._init_serial()
-        # response data container
-        self._reset_response()
         # get the learned channels from the transmitter
         self._learned_channels = {}
         if self._serial:
@@ -259,19 +257,6 @@ class EleroTransmitter(object):
         """The transmitter is usable or not."""
         return True if self._serial else False
 
-    def _reset_response(self):
-        """Reset the response container."""
-        self._response = {'bytes': None,
-                          'header': None,
-                          'length': None,
-                          'command': None,
-                          'ch_h': None,
-                          'ch_l': None,
-                          'chs': set(),
-                          'status': None,
-                          'cs': None,
-                          }
-
     def get_serial_number(self):
         """Return the ID of the transmitter."""
         return self._serial_number
@@ -289,12 +274,11 @@ class EleroTransmitter(object):
         """
         self._send_command(self._get_check_command(), 0)
         ser_resp = self._read_response(RESPONSE_LENGTH_CHECK, 0)
-        self._parse_response(ser_resp, 0)
-        self._learned_channels = dict.fromkeys(self._response['chs'])
+        resp = self._parse_response(ser_resp, 0)
+        self._learned_channels = dict.fromkeys(resp['chs'])
         _LOGGER.debug("The taught channels on the '{}' transmitter are '{}'."
                       .format(self._serial_number, ' '.join(
                         map(str, list(self._learned_channels.keys())))))
-        self._reset_response()
 
     def set_channel(self, channel, obj):
         """Set the channel if it is learned."""
@@ -415,54 +399,66 @@ class EleroTransmitter(object):
 
     def _parse_response(self, ser_resp, channel):
         """Parse the serial data as a response."""
-        self._reset_response()
-        self._response['bytes'] = ser_resp
+        response = {'bytes': None,
+                    'header': None,
+                    'length': None,
+                    'command': None,
+                    'ch_h': None,
+                    'ch_l': None,
+                    'chs': set(),
+                    'status': None,
+                    'cs': None,
+                    }
+
+        response['bytes'] = ser_resp
         # No response or serial data
         if not ser_resp:
-            self._response['status'] = INFO_NO_INFORMATION
+            response['status'] = INFO_NO_INFORMATION
             return
         resp_length = len(ser_resp)
         # Common parts
-        self._response['header'] = ser_resp[0]
-        self._response['length'] = ser_resp[1]
-        self._response['command'] = ser_resp[2]
-        self._response['ch_h'] = self._get_upper_channel_bits(ser_resp[3])
-        self._response['ch_l'] = self._get_lower_channel_bits(ser_resp[4])
-        self._response['chs'] = set(
-            self._response['ch_h'] + self._response['ch_l'])
+        response['header'] = ser_resp[0]
+        response['length'] = ser_resp[1]
+        response['command'] = ser_resp[2]
+        response['ch_h'] = self._get_upper_channel_bits(ser_resp[3])
+        response['ch_l'] = self._get_lower_channel_bits(ser_resp[4])
+        response['chs'] = set(
+            response['ch_h'] + response['ch_l'])
         # Easy Confirmed (the answer on Easy Check)
         if resp_length == RESPONSE_LENGTH_CHECK:
-            self._response['cs'] = ser_resp[5]
+            response['cs'] = ser_resp[5]
         # Easy Ack (the answer on Easy Info)
         elif resp_length == RESPONSE_LENGTH_SEND:
             if ser_resp[5] in INFO:
-                self._response['status'] = INFO[ser_resp[5]]
+                response['status'] = INFO[ser_resp[5]]
             else:
-                self._response['status'] = INFO_UNKNOWN
+                response['status'] = INFO_UNKNOWN
                 _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
                                 "status is unknown: '{}'"
                                 .format(self._serial_number, channel,
                                         ser_resp[5]))
-            self._response['cs'] = ser_resp[6]
+            response['cs'] = ser_resp[6]
         else:
             _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
                             "unknown response: '{}'"
                             .format(self._serial_number, channel, ser_resp))
-            self._response['status'] = INFO_UNKNOWN
+            response['status'] = INFO_UNKNOWN
+
+        return response
 
     def get_response(self, resp_length, channel):
         """Read the response form the device."""
         ser_resp = self._read_response(resp_length, channel)
-        self._parse_response(ser_resp, channel)
+        resp = self._parse_response(ser_resp, channel)
         # reply to the appropriate channel TODO
-        if len(self._response['chs']) == 1:
-            ch = self._response['chs'].pop()
+        if len(resp['chs']) == 1:
+            ch = resp['chs'].pop()
             # call back the channel with its result
-            self._learned_channels[ch](self._response)
+            self._learned_channels[ch](resp)
         else:
             _LOGGER.error(
                 "Elero - The response contains more than one channel."
-                .format(self._response['chs']))
+                .format(resp['chs']))
 
     def _send_command(self, int_list, channel):
         """Write out a command to the serial port."""
@@ -516,27 +512,3 @@ class EleroTransmitter(object):
                 channels.append(ch)
 
         return tuple(channels)
-
-    def _get_learned_channels(self, byt):
-        """The set channel numbers based on the bit mask."""
-        channels = []
-        for i in range(0, 16):
-            if (byt >> i) & 1 == 1:
-                ch = i + 1
-                channels.append(ch)
-
-        return tuple(channels)
-
-    def verify_channel(self, channel):
-        """Compare the response channel and the channel of the device.
-
-        The answer is for this channel.
-        """
-        # TODO: check if the transmitter bug has disappeared
-        if channel == self._response['chs']:
-            return True
-        else:
-            _LOGGER.warning("Elero - the channels are not matched! "
-                            "HA ch: '{}' response ch: '{}'"
-                            .format(channel, self._response['chs']))
-            return False
