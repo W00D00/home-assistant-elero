@@ -415,7 +415,7 @@ class EleroCover(CoverDevice):
             self._tilt_position = None
             self._state = STATE_UNKNOWN
             _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
-                            "Error response: '{}'"
+                            "Error response: '{}'."
                             .format(self._transmitter.get_serial_number(),
                                     self._channel, self._response['status']))
         # INFO_SWITCHING_DEVICE_SWITCHED_ON, INFO_SWITCHING_DEVICE_SWITCHED_OFF
@@ -436,6 +436,6 @@ class EleroCover(CoverDevice):
             self._tilt_position = None
             self._state = STATE_UNKNOWN
             _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
-                            "Unhandled response: '{}'"
+                            "Unhandled response: '{}'."
                             .format(self._transmitter.get_serial_number(),
                                     self._channel, self._response['status']))

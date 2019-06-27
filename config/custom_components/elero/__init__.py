@@ -171,7 +171,7 @@ class EleroTransmitters(object):
                     cp.product and DEFAULT_PRODUCT in cp.product):
                 _LOGGER.info(
                     "Elero - an Elero Transmitter Stick is found on port: '{}'"
-                    " with serial number: '{}'"
+                    " with serial number: '{}'."
                     .format(cp.device, cp.serial_number))
 
                 if (self.config and cp.serial_number and
@@ -240,13 +240,13 @@ class EleroTransmitter(object):
                                          self._stopbits)
         except serial.serialutil.SerialException as exc:
             _LOGGER.exception("Elero - unable to open serial port for '{}' to"
-                              "the Transmitter Stick: '{}'"
+                              "the Transmitter Stick: '{}'."
                               .format(self._serial_number, exc))
 
     def log_out_serial_port_details(self):
         """Log out the details of the serial connection."""
         details = self.serial_port.__dict__
-        _LOGGER.debug("Elero - transmitter stick on port '{}' details: {}"
+        _LOGGER.debug("Elero - transmitter stick on port '{}' details: '{}'."
                       .format(self._port, details))
 
     def close_serial(self):
@@ -393,7 +393,7 @@ class EleroTransmitter(object):
             self._serial.open()
         ser_resp = self._serial.read(resp_length)
         _LOGGER.debug("Elero - transmitter: '{}' ch: '{}' "
-                      "serial response: '{}'"
+                      "serial response: '{}'."
                       .format(self._serial_number, channel, ser_resp))
         return ser_resp
 
@@ -434,13 +434,13 @@ class EleroTransmitter(object):
             else:
                 response['status'] = INFO_UNKNOWN
                 _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
-                                "status is unknown: '{}'"
+                                "status is unknown: '{}'."
                                 .format(self._serial_number, channel,
                                         ser_resp[5]))
             response['cs'] = ser_resp[6]
         else:
             _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
-                            "unknown response: '{}'"
+                            "unknown response: '{}'."
                             .format(self._serial_number, channel, ser_resp))
             response['status'] = INFO_UNKNOWN
 
@@ -457,7 +457,7 @@ class EleroTransmitter(object):
             self._learned_channels[ch](resp)
         else:
             _LOGGER.error(
-                "Elero - The response contains more than one channel."
+                "Elero - The response contains more than one channel: '{}'."
                 .format(resp['chs']))
 
     def _send_command(self, int_list, channel):
@@ -465,7 +465,7 @@ class EleroTransmitter(object):
         int_list.append(self._calculate_checksum(*int_list))
         bytes_data = self._create_serial_data(int_list)
         _LOGGER.debug("Elero - transmitter: '{}' ch: '{}' "
-                      "serial command: '{}'"
+                      "serial command: '{}'."
                       .format(self._serial_number, channel, bytes_data))
         if not self._serial.isOpen():
             self._serial.open()
