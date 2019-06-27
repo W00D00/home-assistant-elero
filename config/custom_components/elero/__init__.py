@@ -274,11 +274,13 @@ class EleroTransmitter(object):
         """
         self._send_command(self._get_check_command(), 0)
         ser_resp = self._read_response(RESPONSE_LENGTH_CHECK, 0)
-        resp = self._parse_response(ser_resp, 0)
-        self._learned_channels = dict.fromkeys(resp['chs'])
-        _LOGGER.debug("The taught channels on the '{}' transmitter are '{}'."
-                      .format(self._serial_number, ' '.join(
-                        map(str, list(self._learned_channels.keys())))))
+        if ser_resp:
+            resp = self._parse_response(ser_resp, 0)
+            self._learned_channels = dict.fromkeys(resp['chs'])
+            _LOGGER.debug(
+                "The taught channels on the '{}' transmitter are '{}'."
+                .format(self._serial_number, ' '.join(
+                    map(str, list(self._learned_channels.keys())))))
 
     def set_channel(self, channel, obj):
         """Set the channel if it is learned."""
@@ -449,16 +451,17 @@ class EleroTransmitter(object):
     def get_response(self, resp_length, channel):
         """Read the response form the device."""
         ser_resp = self._read_response(resp_length, channel)
-        resp = self._parse_response(ser_resp, channel)
-        # reply to the appropriate channel TODO
-        if len(resp['chs']) == 1:
-            ch = resp['chs'].pop()
-            # call back the channel with its result
-            self._learned_channels[ch](resp)
-        else:
-            _LOGGER.error(
-                "Elero - The response contains more than one channel: '{}'."
-                .format(resp['chs']))
+        if ser_resp:
+            resp = self._parse_response(ser_resp, channel)
+            # reply to the appropriate channel TODO
+            if len(resp['chs']) == 1:
+                ch = resp['chs'].pop()
+                # call back the channel with its result
+                self._learned_channels[ch](resp)
+            else:
+                _LOGGER.error(
+                    "Elero - The response not just one channel: '{}'."
+                    .format(resp['chs']))
 
     def _send_command(self, int_list, channel):
         """Write out a command to the serial port."""
