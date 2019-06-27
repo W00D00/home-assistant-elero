@@ -4,5 +4,5 @@
     "documentation": "https://github.com/W00D00/home-assistant-elero",
     "dependencies": [],
     "requirements": ["pyserial==3.4"],
-    "codeowners": ["@W00D00"],
+    "codeowners": ["@W00D00"]
 }
