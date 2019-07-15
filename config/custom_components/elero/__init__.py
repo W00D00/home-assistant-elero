@@ -451,17 +451,22 @@ class EleroTransmitter(object):
     def get_response(self, resp_length, channel):
         """Read the response form the device."""
         ser_resp = self._read_response(resp_length, channel)
-        if ser_resp:
-            resp = self._parse_response(ser_resp, channel)
-            # reply to the appropriate channel TODO
-            if len(resp['chs']) == 1:
-                ch = resp['chs'].pop()
-                # call back the channel with its result
+        resp = self._parse_response(ser_resp, channel)
+        # no meaningful response
+        if resp['status'] == INFO_NO_INFORMATION:
+            return
+        # reply to the appropriate channel
+        if len(resp['chs']) == 1:
+            ch = resp['chs'].pop()
+            # call back the channel with its result
+            if ch in self._learned_channels:
                 self._learned_channels[ch](resp)
             else:
-                _LOGGER.error(
-                    "Elero - The response not just one channel: '{}'."
-                    .format(resp['chs']))
+                _LOGGER.error("Elero - no matched channel '{}'.".format(ch))
+        else:
+            _LOGGER.error(
+                "Elero - more than one channel in the response: '{}'."
+                .format(resp))
 
     def _send_command(self, int_list, channel):
         """Write out a command to the serial port."""
