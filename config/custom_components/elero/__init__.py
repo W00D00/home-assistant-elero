@@ -208,7 +208,7 @@ class EleroTransmitters(object):
 
     def close_transmitters(self):
         """Close the serial connection of the transmitters."""
-        for sn, t in self.transmitters.items():
+        for _, t in self.transmitters.items():
             t.close_serial()
 
 
@@ -436,7 +436,7 @@ class EleroTransmitter(object):
             else:
                 response['status'] = INFO_UNKNOWN
                 _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
-                                "status is unknown: '{}'."
+                                "status is unknown: '{:X}'."
                                 .format(self._serial_number, channel,
                                         ser_resp[5]))
             response['cs'] = ser_resp[6]
@@ -456,17 +456,13 @@ class EleroTransmitter(object):
         if resp['status'] == INFO_NO_INFORMATION:
             return
         # reply to the appropriate channel
-        if len(resp['chs']) == 1:
-            ch = resp['chs'].pop()
+        for ch in resp['chs']:
             # call back the channel with its result
             if ch in self._learned_channels:
                 self._learned_channels[ch](resp)
             else:
-                _LOGGER.error("Elero - no matched channel '{}'.".format(ch))
-        else:
-            _LOGGER.error(
-                "Elero - more than one channel in the response: '{}'."
-                .format(resp))
+                _LOGGER.error("Elero - the channel is not learned '{}'."
+                              .format(ch))
 
     def _send_command(self, int_list, channel):
         """Write out a command to the serial port."""

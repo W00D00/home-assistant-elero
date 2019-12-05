@@ -114,7 +114,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     """Set up the Elero cover platform."""
     covers = []
     covers_conf = config.get(CONF_COVERS, {})
-    for cover_name, cover_conf in covers_conf.items():
+    for _, cover_conf in covers_conf.items():
         transmitter = elero.ELERO_TRANSMITTERS.get_transmitter(
             cover_conf.get(CONF_TRANSMITTER_SERIAL_NUMBER))
         if not transmitter:
@@ -159,6 +159,7 @@ class EleroCover(CoverDevice):
                                                         self.response_handler)
         self._position = None
         self._set_position = None
+        self.slider_multiple = 25
         self._is_opening = None
         self._is_closing = None
         self._closed = None
@@ -262,15 +263,32 @@ class EleroCover(CoverDevice):
         self._transmitter.stop(self._channel)
         self.request_response(RESPONSE_LENGTH_SEND)
 
+    def round_position(self, number):
+        """Round the position."""
+        if number < self.slider_multiple:
+            return 0
+        elif number % self.slider_multiple == 0:
+            return number
+        else:
+            r = number + self.slider_multiple - number % self.slider_multiple
+            return r
+
     def set_cover_position(self, **kwargs):
         """Move the cover to a specific position."""
-        position = kwargs.get(ATTR_POSITION)
-        self._set_position = round(position, -1)
-        _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
-                        "The set cover position function is "
-                        "not implemented yet."
-                        .format(self._transmitter.get_serial_number(),
-                                self._channel))
+        self._set_position = self.round_position(kwargs.get(ATTR_POSITION))
+        if self._set_position == 0:
+            self.close_cover()
+        elif self._set_position == 25:
+            self.close_cover_tilt()
+        elif self._set_position == 50:
+            pass
+        elif self._set_position == 75:
+            self.open_cover_tilt()
+        elif self._set_position == 100:
+            self.open_cover()
+        else:
+            _LOGGER.error("Elero - Wrong Position slider data: {}"
+                          .format(self._set_position))
 
     def close_cover_tilt(self, **kwargs):
         """Close the cover tilt."""
@@ -308,6 +326,7 @@ class EleroCover(CoverDevice):
         self.schedule_update_ha_state()
 
     def set_states(self):
+        """Set the state of the cover."""
         self._elero_state = self._response['status']
         # INFO_NO_INFORMATION
         if self._response['status'] == INFO_NO_INFORMATION:
@@ -354,7 +373,7 @@ class EleroCover(CoverDevice):
             self._closed = False
             self._is_closing = False
             self._is_opening = True
-            self._position = POSITION_UNDEFINED
+            # self._position = POSITION_UNDEFINED
             self._tilt_position = POSITION_OPEN
             self._state = STATE_OPENING
         # INFO_START_TO_MOVE_DOWN
@@ -362,7 +381,7 @@ class EleroCover(CoverDevice):
             self._closed = False
             self._is_closing = True
             self._is_opening = False
-            self._position = POSITION_UNDEFINED
+            # self._position = POSITION_UNDEFINED
             self._tilt_position = POSITION_OPEN
             self._state = STATE_CLOSING
         # INFO_MOVING_UP
@@ -370,7 +389,7 @@ class EleroCover(CoverDevice):
             self._closed = False
             self._is_closing = False
             self._is_opening = True
-            self._position = POSITION_UNDEFINED
+            # self._position = POSITION_UNDEFINED
             self._tilt_position = POSITION_OPEN
             self._state = STATE_OPENING
         # INFO_MOVING_DOWN
@@ -378,7 +397,7 @@ class EleroCover(CoverDevice):
             self._closed = False
             self._is_closing = True
             self._is_opening = False
-            self._position = POSITION_UNDEFINED
+            # self._position = POSITION_UNDEFINED
             self._tilt_position = POSITION_OPEN
             self._state = STATE_CLOSING
         # INFO_STOPPED_IN_UNDEFINED_POSITION
@@ -394,16 +413,16 @@ class EleroCover(CoverDevice):
             self._closed = False
             self._is_closing = False
             self._is_opening = False
-            self._position = POSITION_OPEN
-            self._tilt_position = POSITION_OPEN
+            self._position = POSITION_TILT_VENTILATION
+            self._tilt_position = POSITION_TILT_VENTILATION
             self._state = STATE_OPEN
         # INFO_BOTTOM_POS_STOP_WICH_INT_POS
         elif self._response['status'] == INFO_BOTTOM_POS_STOP_WICH_INT_POS:
             self._closed = True
             self._is_closing = False
             self._is_opening = False
-            self._position = POSITION_CLOSED
-            self._tilt_position = POSITION_CLOSED
+            self._position = POSITION_INTERMEDIATE
+            self._tilt_position = POSITION_INTERMEDIATE
             self._state = STATE_CLOSED
         # INFO_BLOCKING,INFO_OVERHEATED,INFO_TIMEOUT
         elif self._response['status'] in (INFO_BLOCKING, INFO_OVERHEATED,

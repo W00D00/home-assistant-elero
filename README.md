@@ -22,7 +22,7 @@ To use the receiver control of the Home Assistant, at least one receiver must be
 
 # Limitations
 
-1. According to the documentation of the Elero USB Transmitter, more Elero devices could be controlled at the same time with one command. However, It does not work. This causes many timing and control problems. I tried to contact with Elero via mail however the company has so far given no answer to my question about this error.
+1. According to the [documentation of the Elero USB Transmitter](https://www.elero.com/en/downloads-service/downloads/?tx_avelero_downloads%5Baction%5D=search&tx_avelero_downloads%5Blanguage%5D=0&tx_avelero_downloads%5Bquery%5D=stick&tx_avelero_downloads%5Barchive%5D=&cHash=dd3c489f199ddf8e24e38a1d897d2812), more Elero devices could be controlled at the same time with one command. However, It does not work. This causes many timing and control problems. I tried to contact with Elero via mail however the company has so far given no answer to my question about this error.
 
 
 # Elero features
@@ -31,17 +31,15 @@ The Elero Transmitter stick supports the following Elero device features:
 - up
 - down
 - stop
-- tilt
-    - open (intermediate position)
-    - close (ventilation / turning position)
-    - stop
+- intermediate position
+- ventilation / turning position
 
 ---
 
 # Configuration of Elero platform
 As many transmitters can be used as many needed.
-You could use as many transmitters as you want. So, you can control more than 15 devices.
-You can configure every Elero USB Transmitter stick in your installation, add and setup the following settings to your `configuration.yaml` file to every stick:
+You could use as many transmitters as you want. So, you can control more than 15 devices. The connected transmitter stickes are discoveried by automaticly, so by default you do not need to configure them.
+In some special cases, you can configure every Elero USB Transmitter stick in your installation, add and setup the following settings to your `configuration.yaml` file to every stick:
 
 - **serial_number:**
     - **description:** The serial number of the given Elero Transmitter Stick.
@@ -70,9 +68,15 @@ You can configure every Elero USB Transmitter stick in your installation, add an
     - **default:*** 1
 
 
-The connected Elero transmitters are automatically recognized and configured by HA.
-The serial numbers of the connected transmitters can be found in the HA log to the further configuration.
-The serial number of the given transmitter should be used to match a HA channel to the transmitter in the yaml config file.
+The connected Elero transmitters are automatically recognized and configured by HA automaticly.
+The serial numbers of the connected transmitters can be found in the HA log to the further configuration. Please find the following long line:
+
+```
+Elero - an Elero Transmitter Stick is found on port: '<serial port>' with serial number: '<serial number>'.
+```
+
+
+The given serial number of a transmitter should be used to match a HA channel to the transmitter in the yaml config file.
 
 
 The connected devices could be configured with the followings in the `configuration.yaml` file:
@@ -130,14 +134,14 @@ To enable an Elero component like a covers in an installation, add the following
     - **type:** string
     - **default:** -
     - **value:**
-        - up
-        - down
-        - stop
-        - set_position (unsupported yet)
-        - open_tilt
-        - close_tilt
-        - stop_tilt
-        - set_tilt_position (unsupported yet)
+        - up (Elero UP)
+        - down (Elero DOWN)
+        - stop (Elero STOP)
+        - set_position (0=DONW, 25=INT, 50=MOVING, 75=VENT, 100=UP)
+        - open_tilt (Elero INTERMEDIATE)
+        - close_tilt (Elero STOP)
+        - stop_tilt (Elero VENTILATION)
+        - set_tilt_position (unsupported)
 
 Example of a simple cover setup:
 ```yaml
@@ -156,6 +160,80 @@ cover:
                   - stop
 ```
 
+## Cover 'Position' and 'Tilt position' Sliders
+
+Unfortunately, by default, the Position slider is not configurable on a cover so, the 'step' of the slider either. Thus, the 'set_position' and the 'set_tilt_position' functions are not usable. Another problem that the Elero devices are not supporting these functions.
+
+For the Elero 'intermediate' function use the 'open_tilt' HA function and the Elero 'ventilation' function use the 'close_tilt' HA function.
+
+Nevertheless, these controls are shown and useable only if the pop-up window of the given cover is open.
+
+Alternative methods for the Elero 'intermediate' and the 'ventilation' functions:
+
+1. [Call a Service](https://www.home-assistant.io/docs/scripts/service-calls/)
+
+```
+entities:
+  - name: Intermediate
+    service: cover.close_cover_tilt
+    service_data:
+      entity_id: cover.all_cover_group
+    type: call-service
+  - name: Ventilation
+    service: cover.open_cover_tilt
+    service_data:
+      entity_id: cover.all_cover_group
+    type: call-service
+```
+
+
+2. An ['input_number'](https://www.home-assistant.io/integrations/input_number/) slider with automation.
+
+```
+input_number:
+    diningroom_set_position:
+        name: Position
+        mode: slider
+        initial: 0
+        min: 0
+        max: 100
+        step: 25
+
+automation:
+  - alias: diningroom_set_position
+    trigger:
+        platform: numeric_state
+        entity_id: input_number.diningroom_set_position
+        to: 25
+    action:
+        - service: cover.close_cover_tilt
+          entity_id:
+            - cover.diningroom
+
+
+3. An ['input_select'](https://www.home-assistant.io/integrations/input_select/) Scene with automation.
+
+```
+input_select:
+    scene_diningroom:
+        name: Scene
+        options:
+            - open
+            - close
+            - stop
+            - intermediate
+            - ventilation
+
+automation:
+  - alias: Diningroom scene
+    trigger:
+      platform: state
+      entity_id: input_select.scene_diningroom
+      to: intermediate
+    action:
+        - service: cover.close_cover_tilt
+          entity_id:
+            - cover.diningroom
 ---
 
 ## Cover groups
@@ -229,13 +307,14 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 ---
 
 # Version
-* 2.3 - Jul 15, 2019 - No response handling correction
-* 2.2 - Jun 27, 2019 - New no response handling
-* 2.1 - Jun 26, 2019 - Store the Elero channels into the transmitter object
-* 2.0 - Jun 21, 2019 - Discover USB devices automatically
-* 1.6 - Mar 10, 2019 - Intermediate, ventilation position
+* 2.4 - Nov 16, 2019 - 'Position' slider is usable, [Response handling improuvement](https://github.com/W00D00/home-assistant-elero/issues/8)
+* 2.3 - Jul 15, 2019 - 'no response' handling correction
+* 2.2 - Jun 27, 2019 - New 'no response' handling
+* 2.1 - Jun 26, 2019 - [Store the Elero channels into the transmitter object](https://github.com/W00D00/home-assistant-elero/issues/6)
+* 2.0 - Jun 21, 2019 - [Discover USB devices automatically](https://github.com/W00D00/home-assistant-elero/issues/4)
+* 1.6 - Mar 10, 2019 - Correction of the implementation of the intermediate, ventilation position Function
 * 1.5 - Nov 25, 2018 - Upper (9-15) channel state handling correction
-* 1.4 - Oct 20, 2018 - Ventilation/Tilt and Intermediate position
+* 1.4 - Oct 20, 2018 - Implementation of the Ventilation/Tilt and Intermediate position
 * 1.3 - Sep 28, 2018 - Different Elero device handling
 * 1.2 - Jul 9, 2018 - New State system
 * 1.1 - Jun 24, 2018 - Release for beta test
