@@ -263,41 +263,33 @@ class EleroCover(CoverDevice):
         self._transmitter.stop(self._channel)
         self.request_response(RESPONSE_LENGTH_SEND)
 
-    def round_position(self, number):
-        """Round the position."""
-        if number < self.slider_multiple:
-            return 0
-        elif number % self.slider_multiple == 0:
-            return number
-        else:
-            r = number + self.slider_multiple - number % self.slider_multiple
-            return r
-
     def set_cover_position(self, **kwargs):
         """Move the cover to a specific position."""
-        self._set_position = self.round_position(kwargs.get(ATTR_POSITION))
-        if self._set_position == 0:
+        position = kwargs.get(ATTR_POSITION)
+        if position < 13:
+            self._position = 0
             self.close_cover()
-        elif self._set_position == 25:
+        elif position > 13 and position < 50:
+            self._position = 25
             self.close_cover_tilt()
-        elif self._set_position == 50:
-            pass
-        elif self._set_position == 75:
+        elif position > 50 and position < 88:
+            self._position = 75
             self.open_cover_tilt()
-        elif self._set_position == 100:
+        elif position > 88:
+            self._position = 100
             self.open_cover()
         else:
             _LOGGER.error("Elero - Wrong Position slider data: {}"
-                          .format(self._set_position))
+                          .format(self._position))
 
     def close_cover_tilt(self, **kwargs):
         """Close the cover tilt."""
-        self._transmitter.intermediate(self._channel)
+        self._transmitter.ventilation_tilting(self._channel)
         self.request_response(RESPONSE_LENGTH_SEND)
 
     def open_cover_tilt(self, **kwargs):
         """Open the cover tilt."""
-        self._transmitter.ventilation_tilting(self._channel)
+        self._transmitter.intermediate(self._channel)
         self.request_response(RESPONSE_LENGTH_SEND)
 
     def stop_cover_tilt(self, **kwargs):
@@ -308,10 +300,10 @@ class EleroCover(CoverDevice):
     def set_cover_tilt_position(self, **kwargs):
         """Move the cover tilt to a specific position."""
         tilt_position = kwargs.get(ATTR_TILT_POSITION)
-        self._set_tilt_position = round(tilt_position, -1)
+        self._tilt_position = round(tilt_position, -1)
         _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
-                        "The set cover tilt position function is "
-                        "not implemented yet."
+                        "The set cover tilt position function is not "
+                        "supported by Elero so,it is not implemented."
                         .format(self._transmitter.get_serial_number(),
                                 self._channel))
 
