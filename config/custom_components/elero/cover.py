@@ -49,9 +49,9 @@ DEPENDENCIES = ['elero']
 _LOGGER = logging.getLogger(__name__)
 
 POSITION_CLOSED = 0
-POSITION_INTERMEDIATE = 25
+POSITION_TILT_VENTILATION = 25
 POSITION_UNDEFINED = 50
-POSITION_TILT_VENTILATION = 75
+POSITION_INTERMEDIATE = 75
 POSITION_OPEN = 100
 
 ATTR_ELERO_STATE = 'elero_state'
@@ -158,13 +158,10 @@ class EleroCover(CoverDevice):
         self._available = self._transmitter.set_channel(self._channel,
                                                         self.response_handler)
         self._position = None
-        self._set_position = None
-        self.slider_multiple = 25
         self._is_opening = None
         self._is_closing = None
         self._closed = None
         self._tilt_position = None
-        self._set_tilt_position = None
         self._state = None
         self._elero_state = None
         self._response = dict()
@@ -246,56 +243,72 @@ class EleroCover(CoverDevice):
     def update(self):
         """Get the device sate and update its attributes and state."""
         self._transmitter.info(self._channel)
-        self.request_response(RESPONSE_LENGTH_INFO)
+        self._transmitter.get_response(RESPONSE_LENGTH_INFO, self._channel)
 
     def close_cover(self, **kwargs):
         """Close the cover."""
         self._transmitter.down(self._channel)
-        self.request_response(RESPONSE_LENGTH_SEND)
+        self.__set_state_start_to_move_down()
+        self._position = POSITION_CLOSED
+        self.schedule_update_ha_state()
+        # self.request_response(RESPONSE_LENGTH_SEND)
 
     def open_cover(self, **kwargs):
         """Open the cover."""
         self._transmitter.up(self._channel)
-        self.request_response(RESPONSE_LENGTH_SEND)
+        self.__set_state_start_to_move_up()
+        self._position = POSITION_OPEN
+        self.schedule_update_ha_state()
+        # self.request_response(RESPONSE_LENGTH_SEND)
 
     def stop_cover(self, **kwargs):
         """Stop the cover."""
         self._transmitter.stop(self._channel)
-        self.request_response(RESPONSE_LENGTH_SEND)
+        self.__set_state_stopped_in_undefined_position()
+        self.schedule_update_ha_state()
+        # self.request_response(RESPONSE_LENGTH_SEND)
 
     def set_cover_position(self, **kwargs):
         """Move the cover to a specific position."""
         position = kwargs.get(ATTR_POSITION)
         if position < 13:
-            self._position = 0
+            self._position = POSITION_CLOSED
             self.close_cover()
         elif position > 13 and position < 50:
-            self._position = 25
-            self.close_cover_tilt()
+            self._position = POSITION_TILT_VENTILATION
+            self.cover_ventilation_tilting_position()
         elif position > 50 and position < 88:
-            self._position = 75
-            self.open_cover_tilt()
+            self._position = POSITION_INTERMEDIATE
+            self.cover_intermediate_position()
         elif position > 88:
-            self._position = 100
+            self._position = POSITION_OPEN
             self.open_cover()
         else:
             _LOGGER.error("Elero - Wrong Position slider data: {}"
                           .format(self._position))
+        self.schedule_update_ha_state()
+
+    def cover_ventilation_tilting_position(self, **kwargs):
+        """Move into the ventilation/tilting position."""
+        self._transmitter.ventilation_tilting(self._channel)
+        # self.request_response(RESPONSE_LENGTH_SEND)
+
+    def cover_intermediate_position(self, **kwargs):
+        """Move into the intermediate position."""
+        self._transmitter.intermediate(self._channel)
+        # self.request_response(RESPONSE_LENGTH_SEND)
 
     def close_cover_tilt(self, **kwargs):
         """Close the cover tilt."""
-        self._transmitter.ventilation_tilting(self._channel)
-        self.request_response(RESPONSE_LENGTH_SEND)
+        self.cover_ventilation_tilting_position()
 
     def open_cover_tilt(self, **kwargs):
         """Open the cover tilt."""
-        self._transmitter.intermediate(self._channel)
-        self.request_response(RESPONSE_LENGTH_SEND)
+        self.cover_intermediate_position()
 
     def stop_cover_tilt(self, **kwargs):
         """Stop the cover tilt."""
-        self._transmitter.stop(self._channel)
-        self.request_response(RESPONSE_LENGTH_SEND)
+        self.stop_cover()
 
     def set_cover_tilt_position(self, **kwargs):
         """Move the cover tilt to a specific position."""
@@ -303,7 +316,7 @@ class EleroCover(CoverDevice):
         self._tilt_position = round(tilt_position, -1)
         _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
                         "The set cover tilt position function is not "
-                        "supported by Elero so,it is not implemented."
+                        "supported by Elero so, it is not implemented."
                         .format(self._transmitter.get_serial_number(),
                                 self._channel))
 
@@ -317,135 +330,155 @@ class EleroCover(CoverDevice):
         self.set_states()
         self.schedule_update_ha_state()
 
+    def __set_state_no_information(self):
+        """Set the state in "INFO_NO_INFORMATION" case."""
+        self._closed = None
+        self._is_closing = None
+        self._is_opening = None
+        self._position = None
+        self._tilt_position = None
+        self._state = STATE_UNKNOWN
+
+    def __set_state_top_position_stop(self):
+        """Set the state in "INFO_TOP_POSITION_STOP" case."""
+        self._closed = False
+        self._is_closing = False
+        self._is_opening = False
+        self._position = POSITION_OPEN
+        # self._tilt_position = POSITION_OPEN
+        self._state = STATE_OPEN
+
+    def __set_state_bottom_position_stop(self):
+        """Set the state in "INFO_BOTTOM_POSITION_STOP" case."""
+        self._closed = True
+        self._is_closing = False
+        self._is_opening = False
+        self._position = POSITION_CLOSED
+        # self._tilt_position = POSITION_CLOSED
+        self._state = STATE_CLOSED
+
+    def __set_state_intermediate_position_stop(self):
+        """Set the state in "INFO_INTERMEDIATE_POSITION_STOP" case."""
+        self._closed = False
+        self._is_closing = False
+        self._is_opening = False
+        self._position = POSITION_INTERMEDIATE
+        # self._tilt_position = POSITION_OPEN
+        self._state = STATE_OPEN
+
+    def __set_state_tilt_ventilation_pos_stop(self):
+        """Set the state in "INFO_TILT_VENTILATION_POS_STOP" case."""
+        self._closed = False
+        self._is_closing = False
+        self._is_opening = False
+        self._position = POSITION_TILT_VENTILATION
+        # self._tilt_position = STATE_OPEN
+        self._state = STATE_OPEN
+
+    def __set_state_start_to_move_up(self):
+        """Set the state in "INFO_START_TO_MOVE_UP" case."""
+        self._closed = False
+        self._is_closing = False
+        self._is_opening = True
+        # self._position = POSITION_UNDEFINED
+        # self._tilt_position = POSITION_OPEN
+        self._state = STATE_OPENING
+
+    def __set_state_start_to_move_down(self):
+        """Set the state in "INFO_START_TO_MOVE_DOWN" case."""
+        self._closed = False
+        self._is_closing = True
+        self._is_opening = False
+        # self._position = POSITION_UNDEFINED
+        # self._tilt_position = POSITION_OPEN
+        self._state = STATE_CLOSING
+
+    def __set_state_moving_up(self):
+        """Set the state in "INFO_MOVING_UP" case."""
+        self._closed = False
+        self._is_closing = False
+        self._is_opening = True
+        # self._position = POSITION_UNDEFINED
+        # self._tilt_position = POSITION_OPEN
+        self._state = STATE_OPENING
+
+    def __set_state_moving_down(self):
+        """Set the state in "INFO_MOVING_DOWN" case."""
+        self._closed = False
+        self._is_closing = True
+        self._is_opening = False
+        # self._position = POSITION_UNDEFINED
+        # self._tilt_position = POSITION_OPEN
+        self._state = STATE_CLOSING
+
+    def __set_state_stopped_in_undefined_position(self):
+        """Set the state in "INFO_STOPPED_IN_UNDEFINED_POSITION" case."""
+        self._closed = False
+        self._is_closing = False
+        self._is_opening = False
+        self._position = POSITION_UNDEFINED
+        # self._tilt_position = POSITION_UNDEFINED
+        self._state = STATE_OPEN
+
+    def __set_state_top_pos_stop_which_tilt_pos(self):
+        """Set the state in "INFO_TOP_POS_STOP_WICH_TILT_POS" case."""
+        self._closed = False
+        self._is_closing = False
+        self._is_opening = False
+        self._position = POSITION_TILT_VENTILATION
+        # self._tilt_position = POSITION_TILT_VENTILATION
+        self._state = STATE_OPEN
+
+    def __set_state_bottom_pos_stop_which_int_pos(self):
+        """Set the state in "INFO_BOTTOM_POS_STOP_WICH_INT_POS" case."""
+        self._closed = True
+        self._is_closing = False
+        self._is_opening = False
+        self._position = POSITION_INTERMEDIATE
+        # self._tilt_position = POSITION_INTERMEDIATE
+        self._state = STATE_CLOSED
+
     def set_states(self):
         """Set the state of the cover."""
         self._elero_state = self._response['status']
-        # INFO_NO_INFORMATION
         if self._response['status'] == INFO_NO_INFORMATION:
-            self._closed = None
-            self._is_closing = None
-            self._is_opening = None
-            self._position = None
-            self._tilt_position = None
-            self._state = STATE_UNKNOWN
-        # INFO_TOP_POSITION_STOP
+            self.__set_state_no_information()
         elif self._response['status'] == INFO_TOP_POSITION_STOP:
-            self._closed = False
-            self._is_closing = False
-            self._is_opening = False
-            self._position = POSITION_OPEN
-            self._tilt_position = POSITION_OPEN
-            self._state = STATE_OPEN
-        # INFO_BOTTOM_POSITION_STOP
+            self.__set_state_top_position_stop()
         elif self._response['status'] == INFO_BOTTOM_POSITION_STOP:
-            self._closed = True
-            self._is_closing = False
-            self._is_opening = False
-            self._position = POSITION_CLOSED
-            self._tilt_position = POSITION_CLOSED
-            self._state = STATE_CLOSED
-        # INFO_INTERMEDIATE_POSITION_STOP
+            self.__set_state_bottom_position_stop()
         elif self._response['status'] == INFO_INTERMEDIATE_POSITION_STOP:
-            self._closed = False
-            self._is_closing = False
-            self._is_opening = False
-            self._position = POSITION_INTERMEDIATE
-            self._tilt_position = POSITION_OPEN
-            self._state = STATE_OPEN
-        # INFO_TILT_VENTILATION_POS_STOP
+            self.__set_state_intermediate_position_stop()
         elif self._response['status'] == INFO_TILT_VENTILATION_POS_STOP:
-            self._closed = False
-            self._is_closing = False
-            self._is_opening = False
-            self._position = POSITION_TILT_VENTILATION
-            self._tilt_position = STATE_OPEN
-            self._state = STATE_OPEN
-        # INFO_START_TO_MOVE_UP
+            self.__set_state_tilt_ventilation_pos_stop()
         elif self._response['status'] == INFO_START_TO_MOVE_UP:
-            self._closed = False
-            self._is_closing = False
-            self._is_opening = True
-            # self._position = POSITION_UNDEFINED
-            self._tilt_position = POSITION_OPEN
-            self._state = STATE_OPENING
-        # INFO_START_TO_MOVE_DOWN
+            self.__set_state_start_to_move_up()
         elif self._response['status'] == INFO_START_TO_MOVE_DOWN:
-            self._closed = False
-            self._is_closing = True
-            self._is_opening = False
-            # self._position = POSITION_UNDEFINED
-            self._tilt_position = POSITION_OPEN
-            self._state = STATE_CLOSING
-        # INFO_MOVING_UP
+            self.__set_state_start_to_move_down()
         elif self._response['status'] == INFO_MOVING_UP:
-            self._closed = False
-            self._is_closing = False
-            self._is_opening = True
-            # self._position = POSITION_UNDEFINED
-            self._tilt_position = POSITION_OPEN
-            self._state = STATE_OPENING
-        # INFO_MOVING_DOWN
+            self.__set_state_moving_up()
         elif self._response['status'] == INFO_MOVING_DOWN:
-            self._closed = False
-            self._is_closing = True
-            self._is_opening = False
-            # self._position = POSITION_UNDEFINED
-            self._tilt_position = POSITION_OPEN
-            self._state = STATE_CLOSING
-        # INFO_STOPPED_IN_UNDEFINED_POSITION
+            self.__set_state_moving_down()
         elif self._response['status'] == INFO_STOPPED_IN_UNDEFINED_POSITION:
-            self._closed = False
-            self._is_closing = False
-            self._is_opening = False
-            self._position = POSITION_UNDEFINED
-            self._tilt_position = POSITION_UNDEFINED
-            self._state = STATE_OPEN
-        # INFO_TOP_POS_STOP_WICH_TILT_POS
+            self.__set_state_stopped_in_undefined_position()
         elif self._response['status'] == INFO_TOP_POS_STOP_WICH_TILT_POS:
-            self._closed = False
-            self._is_closing = False
-            self._is_opening = False
-            self._position = POSITION_TILT_VENTILATION
-            self._tilt_position = POSITION_TILT_VENTILATION
-            self._state = STATE_OPEN
-        # INFO_BOTTOM_POS_STOP_WICH_INT_POS
+            self.__set_state_top_pos_stop_which_tilt_pos()
         elif self._response['status'] == INFO_BOTTOM_POS_STOP_WICH_INT_POS:
-            self._closed = True
-            self._is_closing = False
-            self._is_opening = False
-            self._position = POSITION_INTERMEDIATE
-            self._tilt_position = POSITION_INTERMEDIATE
-            self._state = STATE_CLOSED
-        # INFO_BLOCKING,INFO_OVERHEATED,INFO_TIMEOUT
+            self.__set_state_bottom_pos_stop_which_int_pos()
         elif self._response['status'] in (INFO_BLOCKING, INFO_OVERHEATED,
                                           INFO_TIMEOUT):
-            self._closed = None
-            self._is_closing = None
-            self._is_opening = None
-            self._position = None
-            self._tilt_position = None
-            self._state = STATE_UNKNOWN
+            self.__set_state_no_information()
             _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
                             "Error response: '{}'."
                             .format(self._transmitter.get_serial_number(),
                                     self._channel, self._response['status']))
-        # INFO_SWITCHING_DEVICE_SWITCHED_ON, INFO_SWITCHING_DEVICE_SWITCHED_OFF
+
         elif self._response['status'] in (
                 INFO_SWITCHING_DEVICE_SWITCHED_ON,
                 INFO_SWITCHING_DEVICE_SWITCHED_OFF):
-            self._closed = None
-            self._is_closing = None
-            self._is_opening = None
-            self._position = None
-            self._tilt_position = None
-            self._state = STATE_UNKNOWN
+            self.__set_state_no_information()
         else:
-            self._closed = None
-            self._is_closing = None
-            self._is_opening = None
-            self._position = None
-            self._tilt_position = None
-            self._state = STATE_UNKNOWN
+            self.__set_state_no_information()
             _LOGGER.warning("Elero - transmitter: '{}' ch: '{}' "
                             "Unhandled response: '{}'."
                             .format(self._transmitter.get_serial_number(),

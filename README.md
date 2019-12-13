@@ -137,10 +137,10 @@ To enable an Elero component like a covers in an installation, add the following
         - up (Elero UP)
         - down (Elero DOWN)
         - stop (Elero STOP)
-        - set_position (0=DONW, 25=INT, 50=MOVING/UNDEF, 75=VENT, 100=UP)
+        - set_position (0=DOWN, 25=VENT, 50=MOVING/UNDEF, 75=INT, 100=UP)
         - open_tilt (Elero INTERMEDIATE)
-        - close_tilt (Elero STOP)
-        - stop_tilt (Elero VENTILATION)
+        - close_tilt (Elero VENTILATION)
+        - stop_tilt (Elero STOP)
         - set_tilt_position (unsupported)
 
 Example of a simple cover setup:
@@ -307,6 +307,7 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 ---
 
 # Version
+* 2.7 - Dec 13, 2019 - [The intermediate and ventilation commands and the statuses do not match to each other.](https://github.com/W00D00/home-assistant-elero/issues/10)
 * 2.6 - Dec 8, 2019 - [The ventilation/intermediate functions are mixed up correction. New position slider with all Elero commands](https://github.com/W00D00/home-assistant-elero/issues/10)
 * 2.5 - Dec 5, 2019 - [Response and cover position slider handling.](https://github.com/W00D00/home-assistant-elero/issues/8)
 * 2.4 - Nov 16, 2019 - 'Position' slider is usable, [Response handling improuvement](https://github.com/W00D00/home-assistant-elero/issues/8)
