@@ -237,7 +237,8 @@ class EleroTransmitter(object):
         try:
             self._serial = serial.Serial(self._port, self._baudrate,
                                          self._bytesize, self._parity,
-                                         self._stopbits)
+                                         self._stopbits, timeout=1.5,
+                                         write_timeout=1.5)
         except serial.serialutil.SerialException as exc:
             _LOGGER.exception("Elero - unable to open serial port for '{}' to"
                               "the Transmitter Stick: '{}'."
