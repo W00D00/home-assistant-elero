@@ -36,9 +36,7 @@ from custom_components.elero import (CONF_TRANSMITTER_SERIAL_NUMBER,
                                      INFO_TILT_VENTILATION_POS_STOP,
                                      INFO_TIMEOUT,
                                      INFO_TOP_POS_STOP_WICH_TILT_POS,
-                                     INFO_TOP_POSITION_STOP,
-                                     RESPONSE_LENGTH_INFO,
-                                     RESPONSE_LENGTH_SEND)
+                                     INFO_TOP_POSITION_STOP)
 
 # Python libraries/modules that you would normally install for your component.
 REQUIREMENTS = []
@@ -248,7 +246,6 @@ class EleroCover(CoverDevice):
     def update(self):
         """Get the device sate and update its attributes and state."""
         self._transmitter.info(self._channel)
-        self._transmitter.get_response(RESPONSE_LENGTH_INFO, self._channel)
 
     def close_cover(self, **kwargs):
         """Close the cover."""
@@ -342,10 +339,6 @@ class EleroCover(CoverDevice):
         else:
             _LOGGER.error("Elero - Wrong Tilt Position slider data: {}"
                           .format(tilt_position))
-
-    def request_response(self, resp_length):
-        """Set state variables based on device response."""
-        self._transmitter.get_response(resp_length, self._channel)
 
     def response_handler(self, response):
         """Callback function to the response from the Transmitter."""

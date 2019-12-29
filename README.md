@@ -307,6 +307,8 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 ---
 
 # Version
+* 2.9 - Dec 30, 2019 - [Serial write/read improuvement.](https://github.com/W00D00/home-assistant-elero/issues/11)
+* 2.8 - Dec 24, 2019 - [Define serial read and write time outs. Extend the HA states with Elero states.](https://github.com/W00D00/home-assistant-elero/issues/11)
 * 2.7 - Dec 13, 2019 - [The intermediate and ventilation commands and the statuses do not match to each other.](https://github.com/W00D00/home-assistant-elero/issues/10)
 * 2.6 - Dec 8, 2019 - [The ventilation/intermediate functions are mixed up correction. New position slider with all Elero commands](https://github.com/W00D00/home-assistant-elero/issues/10)
 * 2.5 - Dec 5, 2019 - [Response and cover position slider handling.](https://github.com/W00D00/home-assistant-elero/issues/8)
