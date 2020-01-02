@@ -341,7 +341,7 @@ class EleroCover(CoverDevice):
                           .format(tilt_position))
 
     def response_handler(self, response):
-        """Callback function to the response from the Transmitter."""
+        """Handle callback to the response from the Transmitter."""
         self._response = response
         self.set_states()
 
