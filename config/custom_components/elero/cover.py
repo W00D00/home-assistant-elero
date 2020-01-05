@@ -4,6 +4,9 @@ Support for Elero cover components.
 For more details about this component, please refer to the documentation
 https://home-assistant.io/components/cover.elero/
 """
+
+__version__ = '2.92'
+
 import logging
 
 import homeassistant.helpers.config_validation as cv
@@ -256,7 +259,7 @@ class EleroCover(CoverDevice):
         self._state = STATE_CLOSING
         self._position = POSITION_CLOSED
         self._tilt_position = POSITION_UNDEFINED
-        self.schedule_update_ha_state()
+        # self.schedule_update_ha_state()
 
     def open_cover(self, **kwargs):
         """Open the cover."""
@@ -267,7 +270,7 @@ class EleroCover(CoverDevice):
         self._state = STATE_OPENING
         self._position = POSITION_OPEN
         self._tilt_position = POSITION_UNDEFINED
-        self.schedule_update_ha_state()
+        # self.schedule_update_ha_state()
 
     def stop_cover(self, **kwargs):
         """Stop the cover."""
@@ -278,7 +281,7 @@ class EleroCover(CoverDevice):
         self._state = STATE_STOPPED
         self._position = POSITION_UNDEFINED
         self._tilt_position = POSITION_UNDEFINED
-        self.schedule_update_ha_state()
+        # self.schedule_update_ha_state()
 
     def set_cover_position(self, **kwargs):
         """Move the cover to a specific position."""
@@ -304,7 +307,7 @@ class EleroCover(CoverDevice):
         self._state = STATE_TILT_VENTILATION
         self._position = POSITION_TILT_VENTILATION
         self._tilt_position = POSITION_TILT_VENTILATION
-        self.schedule_update_ha_state()
+        # self.schedule_update_ha_state()
 
     def cover_intermediate_position(self, **kwargs):
         """Move into the intermediate position."""
@@ -315,7 +318,7 @@ class EleroCover(CoverDevice):
         self._state = STATE_INTERMEDIATE
         self._position = POSITION_INTERMEDIATE
         self._tilt_position = POSITION_INTERMEDIATE
-        self.schedule_update_ha_state()
+        # self.schedule_update_ha_state()
 
     def close_cover_tilt(self, **kwargs):
         """Close the cover tilt."""

@@ -307,13 +307,14 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 ---
 
 # Version
-* 2.91 - Jan 02, 2020 - [Serial write/read improuvement.](https://github.com/W00D00/home-assistant-elero/issues/11)
-* 2.9 - Dec 30, 2019 - [Serial write/read improuvement.](https://github.com/W00D00/home-assistant-elero/issues/11)
+* 2.92 - Jan 05, 2020 - [Refactor the serial write/read processes to solve the group problem. Versioning.](https://github.com/W00D00/home-assistant-elero/issues/11)
+* 2.91 - Jan 02, 2020 - [Serial write/read improvement.](https://github.com/W00D00/home-assistant-elero/issues/11)
+* 2.9 - Dec 30, 2019 - [Serial write/read improvement.](https://github.com/W00D00/home-assistant-elero/issues/11)
 * 2.8 - Dec 24, 2019 - [Define serial read and write time outs. Extend the HA states with Elero states.](https://github.com/W00D00/home-assistant-elero/issues/11)
 * 2.7 - Dec 13, 2019 - [The intermediate and ventilation commands and the statuses do not match to each other.](https://github.com/W00D00/home-assistant-elero/issues/10)
 * 2.6 - Dec 8, 2019 - [The ventilation/intermediate functions are mixed up correction. New position slider with all Elero commands](https://github.com/W00D00/home-assistant-elero/issues/10)
 * 2.5 - Dec 5, 2019 - [Response and cover position slider handling.](https://github.com/W00D00/home-assistant-elero/issues/8)
-* 2.4 - Nov 16, 2019 - 'Position' slider is usable, [Response handling improuvement](https://github.com/W00D00/home-assistant-elero/issues/8)
+* 2.4 - Nov 16, 2019 - 'Position' slider is usable, [Response handling improvement](https://github.com/W00D00/home-assistant-elero/issues/8)
 * 2.3 - Jul 15, 2019 - 'no response' handling correction
 * 2.2 - Jun 27, 2019 - New 'no response' handling
 * 2.1 - Jun 26, 2019 - [Store the Elero channels into the transmitter object](https://github.com/W00D00/home-assistant-elero/issues/6)

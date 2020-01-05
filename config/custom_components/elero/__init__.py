@@ -4,8 +4,10 @@ Support for Elero electrical drives.
 For more details about this platform, please refer to the documentation at
 https://home-assistant.io/components/elero/
 """
+
+__version__ = '2.92'
+
 import logging
-import time
 
 import homeassistant.helpers.config_validation as cv
 import serial
@@ -58,6 +60,7 @@ BYTE_LENGTH_5 = 0x05
 
 # Wich channels are learned.
 COMMAND_CHECK = 0x4A
+COMMAND_CHECH_TEXT = 'Easy Check'
 # required response lenth.
 RESPONSE_LENGTH_CHECK = 6
 # The Playload will be send to all channel with bit set.
@@ -66,6 +69,7 @@ COMMAND_SEND = 0x4C
 RESPONSE_LENGTH_SEND = 7
 # Get the status or position of the channel.
 COMMAND_INFO = 0x4E
+COMMAND_INFO_TEXT = 'Info'
 # Required response lenth.
 RESPONSE_LENGTH_INFO = 7
 # for Serial error handling
@@ -73,15 +77,15 @@ NO_SERIAL_RESPONSE = b''
 
 # Playloads to send.
 PAYLOAD_STOP = 0x10
-PAYLOAD_STOP_TEXT = "stop"
+PAYLOAD_STOP_TEXT = "Stop"
 PAYLOAD_UP = 0x20
-PAYLOAD_UP_TEXT = "up"
+PAYLOAD_UP_TEXT = "Up"
 PAYLOAD_VENTILATION_POS_TILTING = 0x24
-PAYLOAD_VENTILATION_POS_TILTING_TEXT = "ventilation position/tilting"
+PAYLOAD_VENTILATION_POS_TILTING_TEXT = "Tilt/ventilation"
 PAYLOAD_DOWN = 0x40
-PAYLOAD_DOWN_TEXT = "down"
+PAYLOAD_DOWN_TEXT = "Down"
 PAYLOAD_INTERMEDIATE_POS = 0x44
-PAYLOAD_INTERMEDIATE_POS_TEXT = "intermediate position/tilting"
+PAYLOAD_INTERMEDIATE_POS_TEXT = "Intermediate position"
 
 # Info to receive response.
 INFO_UNKNOWN = "unknown response"
@@ -164,6 +168,7 @@ class EleroTransmitters(object):
         """Initialize the usb sticks."""
         self.config = config
         self.transmitters = {}
+        _LOGGER.info("Elero - lib version: {}".format(__version__))
 
     def discover(self):
         """Discover the connected Elero Transmitter Sticks."""
@@ -275,8 +280,8 @@ class EleroTransmitter(object):
         Should be received an answer "Easy Confirm" with in 1 second.
         """
         int_list = self.__get_check_command()
-        self.__ensure_send_command(int_list, 0, RESPONSE_LENGTH_CHECK)
-        self.__ensure_read_response(int_list, 0, RESPONSE_LENGTH_CHECK)
+        self.__process_command(
+            COMMAND_CHECH_TEXT, int_list, 0, RESPONSE_LENGTH_CHECK)
 
     def __set_learned_channels(self, resp):
         """Store learned channels."""
@@ -311,8 +316,8 @@ class EleroTransmitter(object):
         Should be received an answer "Easy Act" with in 4 seconds.
         """
         int_list = self.__get_info_command(channel)
-        self.__ensure_send_command(int_list, channel, RESPONSE_LENGTH_INFO)
-        self.__ensure_read_response(int_list, channel, RESPONSE_LENGTH_INFO)
+        self.__process_command(
+            COMMAND_INFO_TEXT, int_list, channel, RESPONSE_LENGTH_INFO)
 
     def __get_up_command(self, channel):
         """Create a hex list to Open command."""
@@ -328,7 +333,8 @@ class EleroTransmitter(object):
 
         Should be received an answer "Easy Act" with in 4 seconds.
         """
-        self.__ensure_send_command(
+        self.__process_command(
+            PAYLOAD_UP_TEXT,
             self.__get_up_command(channel), channel, RESPONSE_LENGTH_SEND)
 
     def __get_down_command(self, channel):
@@ -345,7 +351,8 @@ class EleroTransmitter(object):
 
         Should be received an answer "Easy Act" with in 4 seconds.
         """
-        self.__ensure_send_command(
+        self.__process_command(
+            PAYLOAD_DOWN_TEXT,
             self.__get_down_command(channel), channel, RESPONSE_LENGTH_SEND)
 
     def __get_stop_command(self, channel):
@@ -362,7 +369,8 @@ class EleroTransmitter(object):
 
         Should be received an answer "Easy Act" with in 4 seconds.
         """
-        self.__ensure_send_command(
+        self.__process_command(
+            PAYLOAD_STOP_TEXT,
             self.__get_stop_command(channel), channel, RESPONSE_LENGTH_SEND)
 
     def __get_intermediate_command(self, channel):
@@ -379,7 +387,8 @@ class EleroTransmitter(object):
 
         Should be received an answer "Easy Act" with in 4 seconds.
         """
-        self.__ensure_send_command(
+        self.__process_command(
+            PAYLOAD_INTERMEDIATE_POS_TEXT,
             self.__get_intermediate_command(channel),
             channel, RESPONSE_LENGTH_SEND)
 
@@ -393,101 +402,50 @@ class EleroTransmitter(object):
         return int_list
 
     def ventilation_tilting(self, channel):
-        """Set the cover in ventilation position.
+        """Set the cover in ventilation/tilting position.
 
         Should be received an answer "Easy Act" with in 4 seconds.
         """
-        self.__ensure_send_command(
+        self.__process_command(
+            PAYLOAD_VENTILATION_POS_TILTING_TEXT,
             self.__get_ventilation_tilting_command(channel),
             channel, RESPONSE_LENGTH_SEND)
 
-    def __ensure_send_command(self, int_list, channel, resp_length):
-        """Ensure the recursive sending."""
-        int_list.append(self.__calculate_checksum(*int_list))
-        bytes_data = self.__create_serial_data(int_list)
-        self.__ensure(self.__send_command, bytes_data, channel, resp_length)
-
-    def __ensure_read_response(self, int_list, channel, resp_length):
-        """Ensure the recursive reading."""
-        int_list.append(self.__calculate_checksum(*int_list))
-        bytes_data = self.__create_serial_data(int_list)
-        ser_resp = self.__ensure(self.__read_response, bytes_data, channel,
-                                 resp_length)
-        if not ser_resp:
-            # TODO
-            return
-
-        resp = self.__parse_response(ser_resp, channel)
-
-        # Easy Check
-        if channel == 0:
-            self.__set_learned_channels(resp)
-        else:
-            self.__process_response(resp)
-
-    def __ensure(self, func, data, channel, resp_length):
+    def __process_command(self, command_text, int_list, channel, resp_length):
         """Ensure the recursive func handling."""
-        resp = False
+        int_list.append(self.__calculate_checksum(*int_list))
+        bytes_data = self.__create_serial_data(int_list)
+
         attempt = 0
         while attempt < 4:
             attempt += 1
-            resp = func(data, channel, resp_length)
-            if resp:
-                break
-            time.sleep(0.1)
-        else:
-            _LOGGER.debug(
-                "Elero - ensure - problem communicating with transmitter: '{}'"
-                " ch: '{}' serial command: '{}' attempt: '{}'."
-                .format(self._serial_number, channel, data, attempt))
-        return resp
-
-    def __send_command(self, bytes_data, channel, resp_length):
-        """Sent a command."""
-        resp = False
-        try:
-            if not self._serial.is_open:
-                self._serial.open()
-
-            bytes_written = self._serial.write(bytes_data)
-
-            len_bytes_data = len(bytes_data)
-            if len_bytes_data == bytes_written:
-                resp = True
-            _LOGGER.debug(
-                "Elero - send command to the transmitter: '{}' ch: '{}' "
-                "serial command: '{}' "
-                "data bytes vs bytes written: '{}' vs '{}'"
-                .format(self._serial_number, channel, bytes_data,
-                        len_bytes_data, bytes_written))
-        except serial.serialutil.SerialException as exc:
-            _LOGGER.debug(
-                "Elero - send - problem communicating with transmitter: '{}' "
-                "ch: '{}' serial command: '{}' serial exception: '{}'."
-                .format(self._serial_number, channel, bytes_data, exc))
-
-        return resp
-
-    def __read_response(self, bytes_data, channel, resp_length):
-        """Read the response."""
-        ser_resp = b''
-        try:
-            if not self._serial.is_open:
-                self._serial.open()
-
-            ser_resp = self._serial.read(resp_length)
-
-            _LOGGER.debug(
-                "Elero - read response from the transmitter: '{}' ch: '{}' "
-                "to the serial command: '{}' response: '{}'."
-                .format(self._serial_number, channel, bytes_data, ser_resp))
-        except serial.serialutil.SerialException as exc:
-            _LOGGER.debug(
-                "Elero - read - problem communicating with transmitter: '{}' "
-                "ch: '{}' serial command: '{}' serial exception: '{}'."
-                .format(self._serial_number, channel, bytes_data, exc))
-
-        return ser_resp
+            try:
+                if not self._serial.is_open:
+                    self._serial.open()
+                self._serial.write(bytes_data)
+                ser_resp = self._serial.read(resp_length)
+                if ser_resp:
+                    resp = self.__parse_response(ser_resp, channel)
+                    _LOGGER.debug(
+                        "Elero - send '{}' command to the transmitter: '{}' "
+                        "ch: '{}' serial command: '{}' serial response: '{}' "
+                        "response: '{}' from ch(s): '{}' attempt: '{}'."
+                        .format(command_text, self._serial_number, channel,
+                                bytes_data, ser_resp, resp['status'],
+                                resp['chs'], attempt))
+                    # Easy Check
+                    if command_text == COMMAND_CHECH_TEXT:
+                        self.__set_learned_channels(resp)
+                    else:
+                        self.__process_response(resp)
+                    break
+            except serial.serialutil.SerialException as exc:
+                _LOGGER.debug(
+                    "Elero - problem communicating with transmitter: '{}'"
+                    "send command: '{}' ch: '{}' serial command: '{}' "
+                    "attempt: '{}' exception: '{}'"
+                    .format(self._serial_number, command_text, channel,
+                            bytes_data, attempt, exc))
 
     def __process_response(self, resp):
         """Read the response form the device."""
@@ -497,8 +455,10 @@ class EleroTransmitter(object):
             if ch in self._learned_channels:
                 self._learned_channels[ch](resp)
             else:
-                _LOGGER.error("Elero - the channel is not learned '{}'."
-                              .format(ch))
+                _LOGGER.error(
+                    "Elero - the channel is not learned '{}' "
+                    "on the transmitter: '{}'."
+                    .format(self._serial_number, ch))
 
     def __parse_response(self, ser_resp, channel):
         """Parse the serial data as a response."""
