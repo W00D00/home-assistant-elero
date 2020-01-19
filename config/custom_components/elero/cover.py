@@ -1,11 +1,6 @@
-"""
-Support for Elero cover components.
+"""Support for Elero cover components."""
 
-For more details about this component, please refer to the documentation
-https://home-assistant.io/components/cover.elero/
-"""
-
-__version__ = '2.92'
+__version__ = "2.92"
 
 import logging
 
@@ -45,75 +40,72 @@ from custom_components.elero import (CONF_TRANSMITTER_SERIAL_NUMBER,
 REQUIREMENTS = []
 
 # Other HASS components that should be setup before the platform is loaded.
-DEPENDENCIES = ['elero']
+DEPENDENCIES = ["elero"]
 
 _LOGGER = logging.getLogger(__name__)
 
-POSITION_CLOSED = 0
-POSITION_TILT_VENTILATION = 25
-POSITION_UNDEFINED = 50
-POSITION_INTERMEDIATE = 75
-POSITION_OPEN = 100
+ATTR_ELERO_STATE = "elero_state"
 
-STATE_STOPPED = 'stopped'
-STATE_TILT_VENTILATION = "ventilation/tilt"
-STATE_INTERMEDIATE = 'intermediate'
-STATE_UNDEFINED = 'undefined'
-
-ATTR_ELERO_STATE = 'elero_state'
-
-# Should be if the transmitter bug is corrected.
-CONF_CHANNELS = 'channels'
-# It is needed because of the transmitter has a channel handling bug.
-CONF_CHANNEL = 'channel'
+CONF_CHANNEL = "channel"
+CONF_SUPPORTED_FEATURES = "supported_features"
 
 ELERO_COVER_DEVICE_CLASSES = {
-    "venetian blind": 'window',
-    "roller shutter": 'window',
-    "interior shading": 'window',
-    'awning': 'window',
-    "rolling door": 'garage',
+    "awning": "window",
+    "interior shading": "window",
+    "roller shutter": "window",
+    "rolling door": "garage",
+    "venetian blind": "window",
 }
 
-ELERO_COVER_DEVICE_CLASSES_SCHEMA = vol.All(vol.Lower,
-                                            vol.In(ELERO_COVER_DEVICE_CLASSES))
+# Position slider values.
+POSITION_CLOSED = 0
+POSITION_INTERMEDIATE = 75
+POSITION_OPEN = 100
+POSITION_TILT_VENTILATION = 25
+POSITION_UNDEFINED = 50
 
-CONF_SUPPORTED_FEATURES = 'supported_features'
+# Elero states.
+STATE_INTERMEDIATE = "intermediate"
+STATE_STOPPED = "stopped"
+STATE_TILT_VENTILATION = "ventilation/tilt"
+STATE_UNDEFINED = "undefined"
 
+# Supported features.
 SUPPORTED_FEATURES = {
-    'up': SUPPORT_OPEN,
-    'down': SUPPORT_CLOSE,
-    'stop': SUPPORT_STOP,
-    'set_position': SUPPORT_SET_POSITION,
-    'open_tilt': SUPPORT_OPEN_TILT,
-    'close_tilt': SUPPORT_CLOSE_TILT,
-    'stop_tilt': SUPPORT_STOP_TILT,
-    'set_tilt_position': SUPPORT_SET_TILT_POSITION,
+    "close_tilt": SUPPORT_CLOSE_TILT,
+    "down": SUPPORT_CLOSE,
+    "open_tilt": SUPPORT_OPEN_TILT,
+    "set_position": SUPPORT_SET_POSITION,
+    "set_tilt_position": SUPPORT_SET_TILT_POSITION,
+    "stop_tilt": SUPPORT_STOP_TILT,
+    "stop": SUPPORT_STOP,
+    "up": SUPPORT_OPEN,
 }
 
-SUPPORTED_FEATURES_SCHEMA = vol.All(cv.ensure_list,
-                                    [vol.In(SUPPORTED_FEATURES)])
+ELERO_COVER_DEVICE_CLASSES_SCHEMA = vol.All(
+    vol.Lower, vol.In(ELERO_COVER_DEVICE_CLASSES)
+)
 
-# Should be if the transmitter bug is corrected.
-CHANNEL_NUMBERS_SCHEMA = vol.All(cv.ensure_list,
-                                 [vol.Range(min=1, max=15)])
+SUPPORTED_FEATURES_SCHEMA = vol.All(cv.ensure_list, [vol.In(SUPPORTED_FEATURES)])
 
 # It is needed because of the transmitter has a channel handling bug.
 CHANNEL_NUMBERS_SCHEMA = vol.All(vol.Coerce(int), vol.Range(min=1, max=15))
 
-# Validation of the user's configuration
-COVER_SCHEMA = vol.Schema({
-    vol.Required(CONF_TRANSMITTER_SERIAL_NUMBER): str,
-    vol.Required(CONF_NAME): str,
-    vol.Required(CONF_CHANNEL): CHANNEL_NUMBERS_SCHEMA,
-    vol.Required(CONF_DEVICE_CLASS): ELERO_COVER_DEVICE_CLASSES_SCHEMA,
-    vol.Required(CONF_SUPPORTED_FEATURES): SUPPORTED_FEATURES_SCHEMA,
-})
+# Validation of the user's configuration.
+COVER_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_CHANNEL): CHANNEL_NUMBERS_SCHEMA,
+        vol.Required(CONF_DEVICE_CLASS): ELERO_COVER_DEVICE_CLASSES_SCHEMA,
+        vol.Required(CONF_NAME): str,
+        vol.Required(CONF_SUPPORTED_FEATURES): SUPPORTED_FEATURES_SCHEMA,
+        vol.Required(CONF_TRANSMITTER_SERIAL_NUMBER): str,
+    }
+)
 
-# Validation of the user's configuration
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend({
-    vol.Required(CONF_COVERS): vol.Schema({cv.slug: COVER_SCHEMA}),
-})
+# Validation of the user's configuration.
+PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
+    {vol.Required(CONF_COVERS): vol.Schema({cv.slug: COVER_SCHEMA}), }
+)
 
 
 def setup_platform(hass, config, add_devices, discovery_info=None):
@@ -122,25 +114,28 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     covers_conf = config.get(CONF_COVERS, {})
     for _, cover_conf in covers_conf.items():
         transmitter = elero.ELERO_TRANSMITTERS.get_transmitter(
-            cover_conf.get(CONF_TRANSMITTER_SERIAL_NUMBER))
+            cover_conf.get(CONF_TRANSMITTER_SERIAL_NUMBER)
+        )
         if not transmitter:
-            _LOGGER.error("Elero - the transmitter '{}' "
-                          "of the '{}' - '{}' channel is "
-                          "non-existent transmitter!"
-                          .format(
-                            cover_conf.get(CONF_TRANSMITTER_SERIAL_NUMBER),
-                            cover_conf.get(CONF_CHANNEL),
-                            cover_conf.get(CONF_NAME)))
+            t = cover_conf.get(CONF_TRANSMITTER_SERIAL_NUMBER)
+            ch = cover_conf.get(CONF_CHANNEL)
+            n = cover_conf.get(CONF_NAME)
+            _LOGGER.error(
+                f"The transmitter '{t}' of the '{ch}' - '{n}' channel is "
+                "non-existent transmitter!"
+            )
             continue
 
-        covers.append(EleroCover(
-            hass,
-            transmitter,
-            cover_conf.get(CONF_NAME),
-            cover_conf.get(CONF_CHANNEL),
-            cover_conf.get(CONF_DEVICE_CLASS),
-            cover_conf.get(CONF_SUPPORTED_FEATURES),
-        ))
+        covers.append(
+            EleroCover(
+                hass,
+                transmitter,
+                cover_conf.get(CONF_NAME),
+                cover_conf.get(CONF_CHANNEL),
+                cover_conf.get(CONF_DEVICE_CLASS),
+                cover_conf.get(CONF_SUPPORTED_FEATURES),
+            )
+        )
 
     add_devices(covers, True)
 
@@ -148,8 +143,9 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
 class EleroCover(CoverDevice):
     """Representation of a Elero cover device."""
 
-    def __init__(self, hass, transmitter, name, channel, device_class,
-                 supported_features):
+    def __init__(
+        self, hass, transmitter, name, channel, device_class, supported_features
+    ):
         """Init of a Elero cover."""
         self.hass = hass
         self._transmitter = transmitter
@@ -161,8 +157,9 @@ class EleroCover(CoverDevice):
         for f in supported_features:
             self._supported_features |= SUPPORTED_FEATURES[f]
 
-        self._available = self._transmitter.set_channel(self._channel,
-                                                        self.response_handler)
+        self._available = self._transmitter.set_channel(
+            self._channel, self.response_handler
+        )
         self._position = None
         self._is_opening = None
         self._is_closing = None
@@ -259,7 +256,6 @@ class EleroCover(CoverDevice):
         self._state = STATE_CLOSING
         self._position = POSITION_CLOSED
         self._tilt_position = POSITION_UNDEFINED
-        # self.schedule_update_ha_state()
 
     def open_cover(self, **kwargs):
         """Open the cover."""
@@ -270,7 +266,6 @@ class EleroCover(CoverDevice):
         self._state = STATE_OPENING
         self._position = POSITION_OPEN
         self._tilt_position = POSITION_UNDEFINED
-        # self.schedule_update_ha_state()
 
     def stop_cover(self, **kwargs):
         """Stop the cover."""
@@ -281,7 +276,6 @@ class EleroCover(CoverDevice):
         self._state = STATE_STOPPED
         self._position = POSITION_UNDEFINED
         self._tilt_position = POSITION_UNDEFINED
-        # self.schedule_update_ha_state()
 
     def set_cover_position(self, **kwargs):
         """Move the cover to a specific position."""
@@ -295,8 +289,7 @@ class EleroCover(CoverDevice):
         elif position > 88:
             self.open_cover()
         else:
-            _LOGGER.error("Elero - Wrong Position slider data: {}"
-                          .format(position))
+            _LOGGER.error(f"Wrong Position slider data: {position}")
 
     def cover_ventilation_tilting_position(self, **kwargs):
         """Move into the ventilation/tilting position."""
@@ -307,7 +300,6 @@ class EleroCover(CoverDevice):
         self._state = STATE_TILT_VENTILATION
         self._position = POSITION_TILT_VENTILATION
         self._tilt_position = POSITION_TILT_VENTILATION
-        # self.schedule_update_ha_state()
 
     def cover_intermediate_position(self, **kwargs):
         """Move into the intermediate position."""
@@ -318,7 +310,6 @@ class EleroCover(CoverDevice):
         self._state = STATE_INTERMEDIATE
         self._position = POSITION_INTERMEDIATE
         self._tilt_position = POSITION_INTERMEDIATE
-        # self.schedule_update_ha_state()
 
     def close_cover_tilt(self, **kwargs):
         """Close the cover tilt."""
@@ -340,8 +331,7 @@ class EleroCover(CoverDevice):
         elif tilt_position > 50:
             self.cover_intermediate_position()
         else:
-            _LOGGER.error("Elero - Wrong Tilt Position slider data: {}"
-                          .format(tilt_position))
+            _LOGGER.error(f"Wrong Tilt Position slider data: {tilt_position}")
 
     def response_handler(self, response):
         """Handle callback to the response from the Transmitter."""
@@ -350,107 +340,108 @@ class EleroCover(CoverDevice):
 
     def set_states(self):
         """Set the state of the cover."""
-        self._elero_state = self._response['status']
-        if self._response['status'] == INFO_NO_INFORMATION:
+        self._elero_state = self._response["status"]
+        if self._response["status"] == INFO_NO_INFORMATION:
             self._closed = None
             self._is_closing = None
             self._is_opening = None
             self._state = STATE_UNKNOWN
             self._position = None
             self._tilt_position = None
-        elif self._response['status'] == INFO_TOP_POSITION_STOP:
+        elif self._response["status"] == INFO_TOP_POSITION_STOP:
             self._closed = False
             self._is_closing = False
             self._is_opening = False
             self._state = STATE_OPEN
             self._position = POSITION_OPEN
             self._tilt_position = POSITION_UNDEFINED
-        elif self._response['status'] == INFO_BOTTOM_POSITION_STOP:
+        elif self._response["status"] == INFO_BOTTOM_POSITION_STOP:
             self._closed = True
             self._is_closing = False
             self._is_opening = False
             self._state = STATE_CLOSED
             self._position = POSITION_CLOSED
             self._tilt_position = POSITION_UNDEFINED
-        elif self._response['status'] == INFO_INTERMEDIATE_POSITION_STOP:
+        elif self._response["status"] == INFO_INTERMEDIATE_POSITION_STOP:
             self._closed = False
             self._is_closing = False
             self._is_opening = False
             self._state = STATE_INTERMEDIATE
             self._position = POSITION_INTERMEDIATE
             self._tilt_position = POSITION_INTERMEDIATE
-        elif self._response['status'] == INFO_TILT_VENTILATION_POS_STOP:
+        elif self._response["status"] == INFO_TILT_VENTILATION_POS_STOP:
             self._closed = False
             self._is_closing = False
             self._is_opening = False
             self._state = STATE_TILT_VENTILATION
             self._position = POSITION_TILT_VENTILATION
             self._tilt_position = POSITION_TILT_VENTILATION
-        elif self._response['status'] == INFO_START_TO_MOVE_UP:
+        elif self._response["status"] == INFO_START_TO_MOVE_UP:
             self._closed = False
             self._is_closing = False
             self._is_opening = True
             self._state = STATE_OPENING
             self._position = POSITION_UNDEFINED
             self._tilt_position = POSITION_UNDEFINED
-        elif self._response['status'] == INFO_START_TO_MOVE_DOWN:
+        elif self._response["status"] == INFO_START_TO_MOVE_DOWN:
             self._closed = False
             self._is_closing = True
             self._is_opening = False
             self._state = STATE_CLOSING
             self._position = POSITION_UNDEFINED
             self._tilt_position = POSITION_UNDEFINED
-        elif self._response['status'] == INFO_MOVING_UP:
+        elif self._response["status"] == INFO_MOVING_UP:
             self._closed = False
             self._is_closing = False
             self._is_opening = True
             self._state = STATE_OPENING
             self._position = POSITION_UNDEFINED
             self._tilt_position = POSITION_UNDEFINED
-        elif self._response['status'] == INFO_MOVING_DOWN:
+        elif self._response["status"] == INFO_MOVING_DOWN:
             self._closed = False
             self._is_closing = True
             self._is_opening = False
             self._state = STATE_CLOSING
             self._position = POSITION_UNDEFINED
             self._tilt_position = POSITION_UNDEFINED
-        elif self._response['status'] == INFO_STOPPED_IN_UNDEFINED_POSITION:
+        elif self._response["status"] == INFO_STOPPED_IN_UNDEFINED_POSITION:
             self._closed = False
             self._is_closing = False
             self._is_opening = False
             self._state = STATE_UNDEFINED
             self._position = POSITION_UNDEFINED
             self._tilt_position = POSITION_UNDEFINED
-        elif self._response['status'] == INFO_TOP_POS_STOP_WICH_TILT_POS:
+        elif self._response["status"] == INFO_TOP_POS_STOP_WICH_TILT_POS:
             self._closed = False
             self._is_closing = False
             self._is_opening = False
             self._state = STATE_TILT_VENTILATION
             self._position = POSITION_TILT_VENTILATION
             self._tilt_position = POSITION_TILT_VENTILATION
-        elif self._response['status'] == INFO_BOTTOM_POS_STOP_WICH_INT_POS:
+        elif self._response["status"] == INFO_BOTTOM_POS_STOP_WICH_INT_POS:
             self._closed = True
             self._is_closing = False
             self._is_opening = False
             self._state = STATE_INTERMEDIATE
             self._position = POSITION_INTERMEDIATE
             self._tilt_position = POSITION_INTERMEDIATE
-        elif self._response['status'] in (INFO_BLOCKING, INFO_OVERHEATED,
-                                          INFO_TIMEOUT):
+        elif self._response["status"] in (INFO_BLOCKING, INFO_OVERHEATED, INFO_TIMEOUT):
             self._closed = None
             self._is_closing = None
             self._is_opening = None
             self._state = STATE_UNKNOWN
             self._position = None
             self._tilt_position = None
-            _LOGGER.error("Elero - transmitter: '{}' ch: '{}' "
-                          "Error response: '{}'."
-                          .format(self._transmitter.get_serial_number(),
-                                  self._channel, self._response['status']))
+            t = self._transmitter.get_serial_number()
+            r = self._response["status"]
+            _LOGGER.error(
+                f"Transmitter: '{t}' ch: '{self._channel}'  error response: '{r}'."
+            )
 
-        elif self._response['status'] in (
-                INFO_SWITCHING_DEVICE_SWITCHED_ON,
-                INFO_SWITCHING_DEVICE_SWITCHED_OFF):
+        elif self._response["status"] in (
+            INFO_SWITCHING_DEVICE_SWITCHED_ON,
+            INFO_SWITCHING_DEVICE_SWITCHED_OFF,
+        ):
             self._closed = None
             self._is_closing = None
             self._is_opening = None
@@ -464,7 +455,9 @@ class EleroCover(CoverDevice):
             self._state = STATE_UNKNOWN
             self._position = None
             self._tilt_position = None
-            _LOGGER.error("Elero - transmitter: '{}' ch: '{}' "
-                          "Unhandled response: '{}'."
-                          .format(self._transmitter.get_serial_number(),
-                                  self._channel, self._response['status']))
+            t = self._transmitter.get_serial_number()
+            r = self._response["status"]
+            _LOGGER.error(
+                f"Transmitter: '{t}' ch: '{self._channel}' "
+                f"unhandled response: '{r}'."
+            )
