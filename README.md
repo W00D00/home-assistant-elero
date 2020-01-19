@@ -307,6 +307,7 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 ---
 
 # Version
+* 3.0 - Jan 19, 2020 [Appling required HA style guideline.](https://github.com/W00D00/home-assistant-elero/commit/e50debc234091f9b16261e9f20e9d90c9604f308)
 * 2.92 - Jan 05, 2020 - [Refactor the serial write/read processes to solve the group problem. Versioning.](https://github.com/W00D00/home-assistant-elero/issues/11)
 * 2.91 - Jan 02, 2020 - [Serial write/read improvement.](https://github.com/W00D00/home-assistant-elero/issues/11)
 * 2.9 - Dec 30, 2019 - [Serial write/read improvement.](https://github.com/W00D00/home-assistant-elero/issues/11)
