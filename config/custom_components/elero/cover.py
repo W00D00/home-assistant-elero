@@ -12,7 +12,7 @@ from homeassistant.components.cover import (ATTR_POSITION, ATTR_TILT_POSITION,
                                             SUPPORT_SET_POSITION,
                                             SUPPORT_SET_TILT_POSITION,
                                             SUPPORT_STOP, SUPPORT_STOP_TILT,
-                                            CoverDevice)
+                                            CoverEntity)
 from homeassistant.components.light import PLATFORM_SCHEMA
 from homeassistant.const import (CONF_COVERS, CONF_DEVICE_CLASS, CONF_NAME,
                                  STATE_CLOSED, STATE_CLOSING, STATE_OPEN,
@@ -140,7 +140,7 @@ def setup_platform(hass, config, add_devices, discovery_info=None):
     add_devices(covers, True)
 
 
-class EleroCover(CoverDevice):
+class EleroCover(CoverEntity):
     """Representation of a Elero cover device."""
 
     def __init__(
