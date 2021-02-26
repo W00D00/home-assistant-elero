@@ -241,6 +241,7 @@ automation:
         - service: cover.close_cover_tilt
           entity_id:
             - cover.diningroom
+```
 ---
 
 ## Cover groups
