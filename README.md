@@ -279,11 +279,11 @@ It is possible to specify triggers for automation of your covers.
 ```yaml
 # Example automations.yaml entry
 # Covers
-    - alias: `Close the covers after sunset`
+    - alias: 'Close the covers after sunset'
       trigger:
         platform: sun
         event: sunset
-        offset: `+00:30:00`
+        offset: '+00:30:00'
       action:
         service: cover.close_cover
         entity_id: cover.all_Cover
