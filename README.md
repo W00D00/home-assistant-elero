@@ -217,6 +217,7 @@ automation:
           entity_id:
             - cover.diningroom
 
+```
 
 3. An [`input_select`](https://www.home-assistant.io/integrations/input_select/) Scene with automation.
 
