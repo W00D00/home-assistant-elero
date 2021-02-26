@@ -71,14 +71,15 @@ In some special cases, you can configure every Elero USB Transmitter stick in yo
 The connected Elero transmitters are automatically recognized and configured by HA automatically.
 The serial numbers of the connected transmitters can be found in the HA log and are needed for the further configuration. 
 Make sure you have the logger set to the INFO level to see the log message. You can do this by adding following to the config file `configuration.yaml`:
-```
+
+```yaml
 logger:
   default: info
 ```
 Then you should see the following long line after a restart of HA:
 
 ```
-Elero - an Elero Transmitter Stick is found on port: `<serial port>` with serial number: `<serial number>`.
+Elero - an Elero Transmitter Stick is found on port: '<serial port>' with serial number: '<serial number>'.
 ```
 
 Make sure to disable the logger config again afterwards to avoid excessive logging!
@@ -97,7 +98,7 @@ elero:
         - serial_number: 00000000
           baudrate: 38400
           bytesize: 8
-          parity: `N`
+          parity: 'N'
           stopbits: 1
 ```
 
@@ -151,6 +152,7 @@ To enable an Elero component like a covers in an installation, add the following
         - set_tilt_position (unsupported)
 
 Example of a simple cover setup:
+
 ```yaml
 # Example configuration.yaml entry
 cover:
@@ -167,19 +169,19 @@ cover:
                   - stop
 ```
 
-## Cover `Position` and `Tilt position` Sliders
+## Cover 'Position' and 'Tilt position' Sliders
 
-Unfortunately, by default, the Position slider is not configurable on a cover so, the `step` of the slider either. Thus, the `set_position` and the `set_tilt_position` functions are not usable. Another problem that the Elero devices are not supporting these functions.
+Unfortunately, by default, the Position slider is not configurable on a cover so, the 'step' of the slider either. Thus, the `set_position` and the `set_tilt_position` functions are not usable. Another problem that the Elero devices are not supporting these functions.
 
-For the Elero `intermediate` function use the `open_tilt` HA function and the Elero `ventilation` function use the `close_tilt` HA function.
+For the Elero 'intermediate' function use the `open_tilt` HA function and the Elero 'ventilation' function use the `close_tilt` HA function.
 
 Nevertheless, these controls are shown and useable only if the pop-up window of the given cover is open.
 
-Alternative methods for the Elero `intermediate` and the `ventilation` functions:
+Alternative methods for the Elero 'intermediate' and the 'ventilation' functions:
 
 1. [Call a Service](https://www.home-assistant.io/docs/scripts/service-calls/)
 
-```
+```yaml
 entities:
   - name: Intermediate
     service: cover.close_cover_tilt
@@ -196,7 +198,7 @@ entities:
 
 2. An [`input_number`](https://www.home-assistant.io/integrations/input_number/) slider with automation.
 
-```
+```yaml
 input_number:
     diningroom_set_position:
         name: Position
@@ -221,7 +223,7 @@ automation:
 
 3. An [`input_select`](https://www.home-assistant.io/integrations/input_select/) Scene with automation.
 
-```
+```yaml
 input_select:
     scene_diningroom:
         name: Scene
@@ -324,7 +326,7 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 * 2.7 - Dec 13, 2019 - [The intermediate and ventilation commands and the statuses do not match to each other.](https://github.com/W00D00/home-assistant-elero/issues/10)
 * 2.6 - Dec 8, 2019 - [The ventilation/intermediate functions are mixed up correction. New position slider with all Elero commands](https://github.com/W00D00/home-assistant-elero/issues/10)
 * 2.5 - Dec 5, 2019 - [Response and cover position slider handling.](https://github.com/W00D00/home-assistant-elero/issues/8)
-* 2.4 - Nov 16, 2019 - `Position` slider is usable, [Response handling improvement](https://github.com/W00D00/home-assistant-elero/issues/8)
+* 2.4 - Nov 16, 2019 - 'Position' slider is usable, [Response handling improvement](https://github.com/W00D00/home-assistant-elero/issues/8)
 * 2.3 - Jul 15, 2019 - `no response` handling correction
 * 2.2 - Jun 27, 2019 - New `no response` handling
 * 2.1 - Jun 26, 2019 - [Store the Elero channels into the transmitter object](https://github.com/W00D00/home-assistant-elero/issues/6)
