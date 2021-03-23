@@ -68,13 +68,20 @@ In some special cases, you can configure every Elero USB Transmitter stick in yo
     - **default:*** 1
 
 
-The connected Elero transmitters are automatically recognized and configured by HA automaticly.
-The serial numbers of the connected transmitters can be found in the HA log to the further configuration. Please find the following long line:
+The connected Elero transmitters are automatically recognized and configured by HA automatically.
+The serial numbers of the connected transmitters can be found in the HA log and are needed for the further configuration. 
+Make sure you have the logger set to the INFO level to see the log message. You can do this by adding following to the config file `configuration.yaml`:
+```
+logger:
+  default: info
+```
+Then you should see the following long line after a restart of HA:
 
 ```
 Elero - an Elero Transmitter Stick is found on port: '<serial port>' with serial number: '<serial number>'.
 ```
 
+Make sure to disable the logger config again afterwards to avoid excessive logging!
 
 The given serial number of a transmitter should be used to match a HA channel to the transmitter in the yaml config file.
 
