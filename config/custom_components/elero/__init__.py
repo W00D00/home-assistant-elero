@@ -10,6 +10,8 @@ import voluptuous as vol
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from serial.tools import list_ports
 
+import os
+
 # Python libraries/modules that you would normally install for your component.
 REQUIREMENTS = ["pyserial==3.4"]
 
@@ -171,23 +173,41 @@ class EleroTransmitters(object):
     def discover(self):
         """Discover the connected Elero Transmitter Sticks."""
         for cp in list_ports.comports():
-            if (
-                cp
-                and cp.manufacturer
+            found_elero_stick = True if (
+                cp and cp.manufacturer
                 and DEFAULT_BRAND in cp.manufacturer
                 and cp.product
                 and DEFAULT_PRODUCT in cp.product
-            ):
+                and cp.serial_number
+            ) else False
+            preset_elero_stick = False
+            try:
+                #check if device matches and if serial number was set
+                if cp.device == os.environ["ELERO_DEVICE"] and os.environ["ELERO_SERIAL_NUMBER"]:
+                    preset_elero_stick = True
+                    elero_serial_number = os.environ["ELERO_SERIAL_NUMBER"]
+                    _LOGGER.info(
+                        f"Elero Transmitter Stick was configured manually: {os.environ['ELERO_DEVICE']}"
+                        f"with serial number {os.environ['ELERO_SERIAL_NUMBER']}"
+                    )
+            except KeyError:
+                # env variables not set, moving on
+                pass
+
+            if found_elero_stick or preset_elero_stick:
+                # use discovered serial number
+                if found_elero_stick:
+                    elero_serial_number = cp.serial_number
                 _LOGGER.info(
                     f"Elero Transmitter Stick is found on port: "
-                    f"'{cp.device}' with serial number: '{cp.serial_number}'."
+                    f"'{cp.device}' with serial number: '{elero_serial_number}'."
                 )
 
-                if self.config and cp.serial_number and cp.serial_number in self.config:
-                    baudrate = self.config[cp.serial_number].get(CONF_BAUDRATE)
-                    bytesize = self.config[cp.serial_number].get(CONF_BYTESIZE)
-                    parity = self.config[cp.serial_number].get(CONF_PARITY)
-                    stopbits = self.config[cp.serial_number].get(CONF_STOPBITS)
+                if self.config and elero_serial_number in self.config:
+                    baudrate = self.config[elero_serial_number].get(CONF_BAUDRATE)
+                    bytesize = self.config[elero_serial_number].get(CONF_BYTESIZE)
+                    parity = self.config[elero_serial_number].get(CONF_PARITY)
+                    stopbits = self.config[elero_serial_number].get(CONF_STOPBITS)
                 else:
                     baudrate = DEFAULT_BAUDRATE
                     bytesize = DEFAULT_BYTESIZE
@@ -195,15 +215,15 @@ class EleroTransmitters(object):
                     stopbits = DEFAULT_STOPBITS
 
                 elero_transmitter = EleroTransmitter(
-                    cp, baudrate, bytesize, parity, stopbits
+                    cp.device, elero_serial_number, baudrate, bytesize, parity, stopbits
                 )
 
                 if elero_transmitter.get_transmitter_state():
-                    if cp.serial_number not in self.transmitters:
-                        self.transmitters[cp.serial_number] = elero_transmitter
+                    if elero_serial_number not in self.transmitters:
+                        self.transmitters[elero_serial_number] = elero_transmitter
                     else:
                         _LOGGER.error(
-                            f"'{cp.serial_number}' transmitter is already added!"
+                            f"'{elero_serial_number}' transmitter is already added!"
                         )
 
     def get_transmitter(self, serial_number):
@@ -223,11 +243,10 @@ class EleroTransmitters(object):
 class EleroTransmitter(object):
     """Representation of an Elero Centero USB Transmitter Stick."""
 
-    def __init__(self, serial_port, baudrate, bytesize, parity, stopbits):
+    def __init__(self, serial_device, serial_number, baudrate, bytesize, parity, stopbits):
         """Initialize a elero transmitter."""
-        self.serial_port = serial_port
-        self._serial_number = self.serial_port.serial_number
-        self._port = self.serial_port.device
+        self._port = serial_device
+        self._serial_number = serial_number
         self._baudrate = baudrate
         self._bytesize = bytesize
         self._parity = parity
@@ -260,8 +279,7 @@ class EleroTransmitter(object):
 
     def log_out_serial_port_details(self):
         """Log out the details of the serial connection."""
-        details = self.serial_port.__dict__
-        _LOGGER.debug(f"Transmitter stick on port '{self._port}' details: '{details}'.")
+        _LOGGER.debug(f"Transmitter stick on port '{self._port}' serial: '{self._serial_number}'.")
 
     def close_serial(self):
         """Close the serial connection of the transmitter."""
