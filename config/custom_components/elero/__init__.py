@@ -13,7 +13,7 @@ from serial.tools import list_ports
 import os
 
 # Python libraries/modules that you would normally install for your component.
-REQUIREMENTS = ["pyserial==3.4"]
+REQUIREMENTS = ["pyserial>=3.4"]
 
 # Other HASS components that should be setup before the platform is loaded.
 DEPENDENCIES = []
