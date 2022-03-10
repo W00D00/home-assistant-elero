@@ -263,9 +263,13 @@ cover:
 ---
 
 # Installation of the lib
+## Manual Installation
 Just copy the contents of the `custom_components` folder into the Home Assistant `../config/custom_components/` folder.
 
 Configurate the `/config/configuration.yaml` file and its all linked files like `covers` and `groups`, etc. Restart the Home Assistant.
+
+## HACS Installation
+You can use [HACS](https://hacs.xyz) to install the custom component. You need to add this repository https://github.com/W00D00/home-assistant-elero as a custom repository in HACS.
 
 ## Example config files
 Some example files can be found in the `config` folder as a help or starting point.
