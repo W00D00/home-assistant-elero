@@ -263,9 +263,13 @@ cover:
 ---
 
 # Installation of the lib
+## Manual Installation
 Just copy the contents of the `custom_components` folder into the Home Assistant `../config/custom_components/` folder.
 
 Configurate the `/config/configuration.yaml` file and its all linked files like `covers` and `groups`, etc. Restart the Home Assistant.
+
+## HACS Installation
+You can use [HACS](https://hacs.xyz) to install the custom component. You need to add this repository https://github.com/W00D00/home-assistant-elero as a custom repository in HACS.
 
 ## Example config files
 Some example files can be found in the `config` folder as a help or starting point.
@@ -318,6 +322,8 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 ---
 
 # Version
+* 3.2.0 - March 10, 2022 [Added support for HACS](https://github.com/W00D00/home-assistant-elero/issues/23)
+* 3.1.0 - March 5, 2022 [Update dependencies for pip 20.3](https://github.com/W00D00/home-assistant-elero/issues/29)
 * 3.0.0 - April 23, 2021 [Update manifest.json with version.](https://github.com/W00D00/home-assistant-elero/commit/d6bce117bc26c9b4cf54b649060e8ea3a8538816)
 * 3.0 - Jan 19, 2020 [Appling required HA style guideline.](https://github.com/W00D00/home-assistant-elero/commit/e50debc234091f9b16261e9f20e9d90c9604f308)
 * 2.92 - Jan 05, 2020 - [Refactor the serial write/read processes to solve the group problem. Versioning.](https://github.com/W00D00/home-assistant-elero/issues/11)
