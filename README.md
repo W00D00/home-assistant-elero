@@ -322,6 +322,7 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 ---
 
 # Version
+* 3.2.2 - November 17, 2022 [Introduce the unique ID](https://github.com/W00D00/home-assistant-elero/pull/38)
 * 3.2.1 - March 10, 2022 [Fix TypeError on HA Shutdowm](https://github.com/W00D00/home-assistant-elero/pull/36)
 * 3.2.0 - March 10, 2022 [Added support for HACS](https://github.com/W00D00/home-assistant-elero/issues/23)
 * 3.1.0 - March 5, 2022 [Update dependencies for pip 20.3](https://github.com/W00D00/home-assistant-elero/issues/29)
