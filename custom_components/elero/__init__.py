@@ -1,6 +1,6 @@
 """Support for Elero electrical drives."""
 
-__version__ = "3.2.0"
+__version__ = "3.2.1"
 
 import logging
 
@@ -151,7 +151,7 @@ def setup(hass, config):
     ELERO_TRANSMITTERS = EleroTransmitters(transmitters_config)
     ELERO_TRANSMITTERS.discover()
 
-    def close_serial_ports():
+    def close_serial_ports(event):
         """Close the serial port."""
         ELERO_TRANSMITTERS.close_transmitters()
 
