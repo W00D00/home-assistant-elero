@@ -172,7 +172,7 @@ class EleroCover(CoverEntity):
     @property
     def unique_id(self):
         """
-        Gets the unique ID of the fan.
+        Gets the unique ID of the cover.
         """
         ser_num = self._transmitter.get_serial_number()
         ch = self._channel
