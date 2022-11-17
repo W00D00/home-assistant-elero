@@ -170,6 +170,15 @@ class EleroCover(CoverEntity):
         self._response = dict()
 
     @property
+    def unique_id(self):
+        """
+        Gets the unique ID of the fan.
+        """
+        ser_num = self._transmitter.get_serial_number()
+        ch = self._channel
+        return f"{ser_num}_{ch}"
+
+    @property
     def name(self):
         """Return the name of the cover."""
         return self._name
