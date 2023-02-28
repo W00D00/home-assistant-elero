@@ -347,3 +347,106 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 * 1.2 - Jul 9, 2018 - New State system
 * 1.1 - Jun 24, 2018 - Release for beta test
 * 1.0 - Jun 16, 2018 - Initial release
+
+
+
+
+
+# Remote connection
+
+Connect the Elero component to an USB stick that is connected to a Raspberry PI
+
+## Installation of ser2net on a Raspberry PI
+
+```bash
+sudo rpi-update
+
+sudo apt-get install ser2net
+```
+
+ser2net version 4.3.3 will be installed and a YAML configuration will be used.
+
+
+### Configuration of ser2net
+
+Connect the Elero transmitter stick to the Raspberry PI
+
+For finding the ID of Elero transmitter call
+
+```bash
+ls /dev/serial/by-id
+``` 
+
+
+Update the ser2net.yaml configuration
+```
+sudo nano /etc/ser2net.yaml
+```
+
+and add the following configuration to the file. Use the ID of your stick.
+
+```yaml
+connection: &con02
+  accepter: tcp,20109
+  enable: off
+ #connector: serialdev,/dev/ttyUSB1,38400n81,local
+  connector: serialdev,/dev/serial/by-id/usb-elero_GmbH_Transmitter_Stick_AU00JHUU-if00-port0,38400n81,local
+  options:
+    kickolduser: true
+```
+
+
+### Fix problems of starting ser2net service after reboot
+
+The manually ser2net application has some problems after raspberry pi's reboot. The USB-sticks can't be hosted as TCP ports and
+the `sudo service ser2net status` shows Invalid name/port.
+
+This can be simply fixed by a manual restart of the service `sudo service ser2net restart`.
+
+
+This manual restart can be automatically called using crontab.
+Add the restart 30s after a reboot (Absolute paths must be set in the crontab)
+
+```
+sudo crontab -e
+```
+and add the following line to the file
+```
+@reboot /usr/bin/sleep 30 && /usr/sbin/service ser2net restart
+```
+
+### Helper tools
+Helper command to show open ports: `ss -tulw`
+
+
+Helper script `list_ports.py` to show information of the USB device
+
+```python
+from serial.tools import list_ports
+
+if __name__ == "__main__":
+  
+  for cp in list_ports.comports():
+    print(cp)
+    print("Device:", cp.device)
+    print("Serial Number:", cp.serial_number)
+    print("Product:", cp.product)
+    print("Manufacturer:", cp.manufacturer)
+    print("----")
+```
+
+
+
+
+## Homeassistant configuration of remote transmitters
+
+The following values must be set to configure the Elero component to use remote transmitters. The serial number, the IP address and the port must match with the values configured before.
+
+```yaml
+elero:
+    remote_transmitters:
+        - serial_number: AU00JHUU
+          address: "192.168.10.29:20109"
+```
+
+

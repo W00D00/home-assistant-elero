@@ -38,6 +38,8 @@ CONF_PARITY = "parity"
 CONF_STOPBITS = "stopbits"
 CONF_TRANSMITTER_SERIAL_NUMBER = "serial_number"
 CONF_TRANSMITTERS = "transmitters"
+CONF_REMOTE_TRANSMITTERS = "remote_transmitters"
+CONF_REMOTE_TRANSMITTERS_ADDRESS = "address"
 
 # Easy commands.
 COMMAND_CHECK = 0x4A
@@ -132,11 +134,21 @@ ELERO_TRANSMITTER_SCHEMA = vol.Schema(
     }
 )
 
+ELERO_REMOTE_TRANSMITTER_SCHEMA = vol.Schema(
+    {
+        vol.Required(CONF_TRANSMITTER_SERIAL_NUMBER): str,
+        vol.Required(CONF_REMOTE_TRANSMITTERS_ADDRESS): str
+    }
+)
+
 # Validation of the user's configuration.
 CONFIG_SCHEMA = vol.Schema(
     {
         DOMAIN: vol.Schema(
-            {vol.Optional(CONF_TRANSMITTERS): [ELERO_TRANSMITTER_SCHEMA], }
+            {
+                vol.Optional(CONF_TRANSMITTERS): [ELERO_TRANSMITTER_SCHEMA],
+                vol.Optional(CONF_REMOTE_TRANSMITTERS): [ELERO_REMOTE_TRANSMITTER_SCHEMA] 
+            }
         ),
     },
     extra=vol.ALLOW_EXTRA,
@@ -148,8 +160,11 @@ def setup(hass, config):
     global ELERO_TRANSMITTERS
     elero_config = config.get(DOMAIN)
     transmitters_config = elero_config.get(CONF_TRANSMITTERS)
+    remote_transmitters_config = elero_config.get(CONF_REMOTE_TRANSMITTERS)
+
     ELERO_TRANSMITTERS = EleroTransmitters(transmitters_config)
     ELERO_TRANSMITTERS.discover()
+    ELERO_TRANSMITTERS.connect_remote_transmitters(remote_transmitters_config)
 
     def close_serial_ports(event):
         """Close the serial port."""
@@ -171,7 +186,8 @@ class EleroTransmitters(object):
         _LOGGER.info(f"Elero lib version: {__version__}")
 
     def discover(self):
-        """Discover the connected Elero Transmitter Sticks."""
+        """Discover the local connected Elero Transmitter Sticks."""
+
         for cp in list_ports.comports():
             found_elero_stick = True if (
                 cp and cp.manufacturer
@@ -217,6 +233,7 @@ class EleroTransmitters(object):
                 elero_transmitter = EleroTransmitter(
                     cp.device, elero_serial_number, baudrate, bytesize, parity, stopbits
                 )
+                elero_transmitter.init_serial()
 
                 if elero_transmitter.get_transmitter_state():
                     if elero_serial_number not in self.transmitters:
@@ -225,13 +242,39 @@ class EleroTransmitters(object):
                         _LOGGER.error(
                             f"'{elero_serial_number}' transmitter is already added!"
                         )
+    def connect_remote_transmitters(self, config):
+        """Find remote transmitters."""
+
+        _LOGGER.debug("Connect Elero remote transmitters")
+        
+        if not config:  # No remote transmitters configured
+            return
+        
+        for remote_config in config:
+            _LOGGER.debug(f"Try to connect to remote transmitter "
+                          f"'{remote_config[CONF_TRANSMITTER_SERIAL_NUMBER]} with " 
+                          f"address '{remote_config[CONF_REMOTE_TRANSMITTERS_ADDRESS]}'")
+            
+            serial_number = remote_config[CONF_TRANSMITTER_SERIAL_NUMBER]
+            address = remote_config[CONF_REMOTE_TRANSMITTERS_ADDRESS]
+
+            elero_transmitter = EleroRemoteTransmitter(serial_number, address)
+            elero_transmitter.init_serial()
+
+            if elero_transmitter.get_transmitter_state():
+                    if serial_number not in self.transmitters:
+                        self.transmitters[serial_number] = elero_transmitter
+                    else:
+                        _LOGGER.error(
+                            f"'{serial_number}' transmitter has already been added!"
+                        )
 
     def get_transmitter(self, serial_number):
         """Return the given transmitter."""
         if serial_number in self.transmitters:
             return self.transmitters[serial_number]
         else:
-            _LOGGER.error(f"The transmitter '{serial_number}' is not exist!")
+            _LOGGER.error(f"The transmitter '{serial_number}' doesn't exist!")
             return None
 
     def close_transmitters(self):
@@ -251,15 +294,20 @@ class EleroTransmitter(object):
         self._bytesize = bytesize
         self._parity = parity
         self._stopbits = stopbits
-        # Setup the serial connection to the transmitter.
+    
         self._serial = None
-        self.__init_serial()
-        # Get the learned channels from the transmitter.
         self._learned_channels = {}
+        
+    def init_serial(self):
+        """Setup serial connection and get learned channels from the transmitter."""
+
+        # Setup the serial connection to the transmitter.
+        self.init_serial_port()
+        # Get the learned channels from the transmitter.
         if self._serial:
             self.check()
 
-    def __init_serial(self):
+    def init_serial_port(self):
         """Init the serial port to the transmitter."""
         try:
             self._serial = serial.Serial(
@@ -505,6 +553,7 @@ class EleroTransmitter(object):
                     f"ch: '{channel}' serial command: '{bytes_data}' "
                     f"attempt: '{attempt}' exception: '{exc}'"
                 )
+                self.init_serial_port()
 
     def __process_response(self, resp):
         """Read the response form the device."""
@@ -605,3 +654,47 @@ class EleroTransmitter(object):
                 channels.append(ch)
 
         return tuple(channels)
+
+
+class EleroRemoteTransmitter(EleroTransmitter):
+    """Representation of a remotely connected Elero Centero USB Transmitter Stick.
+    
+       Using ser2net
+    
+    """
+    def __init__(self, serial_number, address):
+        
+        self._address = address
+        super().__init__(None, serial_number, None, None, None, None, )
+
+    
+    def init_serial(self):
+        """Setup serial connection and get learned channels from the transmitter."""
+        
+        # Setup the serial connection to the transmitter.
+        self.init_serial_port()
+        # Get the learned channels from the transmitter.
+        if self._serial:
+            self.check()
+
+
+    def init_serial_port(self):
+        """Init the serial port to the transmitter."""
+
+        url = f"socket://{self._address}"
+        # https://pyserial.readthedocs.io/en/latest/url_handlers.html#urls
+        try:
+            self._serial = serial.serial_for_url(url)
+            _LOGGER.info(
+                    f"Elero Transmitter Stick is remotely connected to '{self._address}' "
+                    f"with serial number: '{self._serial_number}'."
+                )
+        except serial.serialutil.SerialException as exc:
+            _LOGGER.exception(
+                f"Unable to connect to remote serial port '{url}' for serial "
+                f"number {self._serial_number}: '{exc}'."
+            )
+
+    def log_out_serial_port_details(self):
+        """Log out the details of the serial connection."""
+        _LOGGER.debug(f"Remote Transmitter stick on address '{self._address}'.")
