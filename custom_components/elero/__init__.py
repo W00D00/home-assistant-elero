@@ -11,6 +11,7 @@ from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from serial.tools import list_ports
 
 import os
+import threading
 
 # Python libraries/modules that you would normally install for your component.
 REQUIREMENTS = ["pyserial>=3.4"]
@@ -251,6 +252,7 @@ class EleroTransmitter(object):
         self._bytesize = bytesize
         self._parity = parity
         self._stopbits = stopbits
+        self._threading_lock = threading.Lock()
         # Setup the serial connection to the transmitter.
         self._serial = None
         self.__init_serial()
@@ -477,10 +479,11 @@ class EleroTransmitter(object):
         while attempt < 4:
             attempt += 1
             try:
-                if not self._serial.is_open:
-                    self._serial.open()
-                self._serial.write(bytes_data)
-                ser_resp = self._serial.read(resp_length)
+                with self._threading_lock:
+                    if not self._serial.is_open:
+                        self._serial.open()
+                    self._serial.write(bytes_data)
+                    ser_resp = self._serial.read(resp_length)
                 if ser_resp:
                     resp = self.__parse_response(ser_resp, channel)
                     rsp = resp["status"]
