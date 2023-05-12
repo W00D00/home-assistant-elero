@@ -295,7 +295,8 @@ class EleroTransmitter(object):
         self._bytesize = bytesize
         self._parity = parity
         self._stopbits = stopbits
-    
+        self._threading_lock = threading.Lock()
+        # Setup the serial connection to the transmitter.
         self._serial = None
         self._learned_channels = {}
 
