@@ -7,12 +7,8 @@ import logging
 import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
 from homeassistant.components.cover import (ATTR_POSITION, ATTR_TILT_POSITION,
-                                            SUPPORT_CLOSE, SUPPORT_CLOSE_TILT,
-                                            SUPPORT_OPEN, SUPPORT_OPEN_TILT,
-                                            SUPPORT_SET_POSITION,
-                                            SUPPORT_SET_TILT_POSITION,
-                                            SUPPORT_STOP, SUPPORT_STOP_TILT,
-                                            CoverEntity)
+                                            CoverEntity,
+                                            CoverEntityFeature)
 from homeassistant.components.light import PLATFORM_SCHEMA
 from homeassistant.const import (CONF_COVERS, CONF_DEVICE_CLASS, CONF_NAME,
                                  STATE_CLOSED, STATE_CLOSING, STATE_OPEN,
@@ -72,14 +68,14 @@ STATE_UNDEFINED = "undefined"
 
 # Supported features.
 SUPPORTED_FEATURES = {
-    "close_tilt": SUPPORT_CLOSE_TILT,
-    "down": SUPPORT_CLOSE,
-    "open_tilt": SUPPORT_OPEN_TILT,
-    "set_position": SUPPORT_SET_POSITION,
-    "set_tilt_position": SUPPORT_SET_TILT_POSITION,
-    "stop_tilt": SUPPORT_STOP_TILT,
-    "stop": SUPPORT_STOP,
-    "up": SUPPORT_OPEN,
+    "close_tilt": CoverEntityFeature.CLOSE_TILT,
+    "down": CoverEntityFeature.CLOSE,
+    "open_tilt": CoverEntityFeature.OPEN_TILT,
+    "set_position": CoverEntityFeature.SET_POSITION,
+    "set_tilt_position": CoverEntityFeature.SET_TILT_POSITION,
+    "stop_tilt": CoverEntityFeature.STOP_TILT,
+    "stop": CoverEntityFeature.STOP,
+    "up": CoverEntityFeature.OPEN,
 }
 
 ELERO_COVER_DEVICE_CLASSES_SCHEMA = vol.All(
