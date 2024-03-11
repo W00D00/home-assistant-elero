@@ -322,6 +322,8 @@ Feature branches with lots of small commits (especially titled "oops", "fix typo
 ---
 
 # Version
+* 3.3.1 - March 11, 2023 [Fix Deprecated Constant Usage](https://github.com/W00D00/home-assistant-elero/pull/45)
+* 3.3 - May 12, 2023 [Using remote transmitter with ser2net](https://github.com/W00D00/home-assistant-elero/pull/40) & [Fix execution on HA2023.5.](https://github.com/W00D00/home-assistant-elero/pull/43)
 * 3.2.2 - November 17, 2022 [Introduce the unique ID](https://github.com/W00D00/home-assistant-elero/pull/38)
 * 3.2.1 - March 10, 2022 [Fix TypeError on HA Shutdowm](https://github.com/W00D00/home-assistant-elero/pull/36)
 * 3.2.0 - March 10, 2022 [Added support for HACS](https://github.com/W00D00/home-assistant-elero/issues/23)
