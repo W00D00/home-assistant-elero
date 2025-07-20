@@ -1,0 +1,43 @@
+# Example Elero configuration
+# This file shows how to configure Elero transmitters
+
+# Example 1: Automatic discovery (existing method)
+# The system will automatically find Elero devices and use their discovered serial numbers
+# transmitters:
+#   - serial_number: B1234567
+#     baudrate: 38400
+#     bytesize: 8
+#     parity: "N"
+#     stopbits: 1
+
+# Example 2: Manual device specification (new method)
+# You can manually specify the device path when automatic discovery doesn't work
+# or when you need to use a specific device
+# transmitters:
+#   - serial_number: B1234567
+#     device_path: /dev/ttyUSB2
+#     baudrate: 38400
+#     bytesize: 8
+#     parity: "N"
+#     stopbits: 1
+
+# Example 3: Multiple transmitters (recommended configuration)
+transmitters:
+  - baudrate: 38400
+    bytesize: 8
+    device_path: /dev/ttyUSB2
+    parity: "N"
+    serial_number: A908E04I
+    stopbits: 1
+  - baudrate: 38400
+    bytesize: 8
+    device_path: /dev/ttyUSB3
+    parity: "N"
+    serial_number: B1234567
+    stopbits: 1
+  - baudrate: 38400
+    bytesize: 8
+    parity: "N"
+    serial_number: C9876543
+    stopbits: 1
+    # No device_path - will use automatic discovery

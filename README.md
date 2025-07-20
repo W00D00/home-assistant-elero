@@ -42,7 +42,12 @@ You could use as many transmitters as you want. So, you can control more than 15
 In some special cases, you can configure every Elero USB Transmitter stick in your installation, add and setup the following settings to your `configuration.yaml` file to every stick:
 
 - **serial_number:**
-    - **description:** The serial number of the given Elero Transmitter Stick.
+    - **description:** The serial number of the given Elero Transmitter Stick. Required for automatic discovery, optional when using device_name.
+    - **required:** false (required for automatic discovery)
+    - **type:** string
+    - **default:** -
+- **device_path:**
+    - **description:** The device path to manually specify the serial port (e.g., /dev/ttyUSB0, /dev/ttyUSB2, COM1, etc.).
     - **required:** false
     - **type:** string
     - **default:** -
@@ -70,6 +75,9 @@ In some special cases, you can configure every Elero USB Transmitter stick in yo
 
 The connected Elero transmitters are automatically recognized and configured by HA automatically.
 The serial numbers of the connected transmitters can be found in the HA log and are needed for the further configuration. 
+
+**Note:** When using `device_path` to manually specify a device, the `serial_number` is still required for proper identification and channel mapping.
+
 Make sure you have the logger set to the INFO level to see the log message. You can do this by adding following to the config file `configuration.yaml`:
 
 ```yaml
@@ -96,6 +104,12 @@ Example of the configuration:
 elero:
     transmitters:
         - serial_number: 00000000
+          baudrate: 38400
+          bytesize: 8
+          parity: 'N'
+          stopbits: 1
+        - serial_number: B1234567
+          device_path: /dev/ttyUSB2
           baudrate: 38400
           bytesize: 8
           parity: 'N'

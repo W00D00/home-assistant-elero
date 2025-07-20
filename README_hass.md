@@ -46,7 +46,12 @@ elero:
 
 {% configuration %}
   serial_number:
-    description: Serial number if the given Transmitter Stick.
+    description: Serial number of the given Transmitter Stick. Required for automatic discovery, optional when using device_name.
+    required: false (required for automatic discovery)
+    type: string
+    default: -
+  device_path:
+    description: The device path to manually specify the serial port (e.g., /dev/serial/by-id/usb-Elero_Transmitter_Stick-if00, /dev/ttyUSB0, /dev/ttyUSB2, COM1, etc.).
     required: false
     type: string
     default: -
@@ -73,7 +78,7 @@ elero:
 {% endconfiguration %}
 
 
-The connected Elero transmitters are automatically recognized and set. The serial number of the given stick should be used to match a channel to the stick by you in the config file. You can find the serial numbers the HA log.
+The connected Elero transmitters are automatically recognized and set. The serial number of the given stick should be used to match a channel to the stick by you in the config file. You can find the serial numbers in the HA log.
 
 You can configure the connected devices with the followings in the `configuration.yaml` file if it is needed:
 
@@ -83,8 +88,15 @@ You can configure the connected devices with the followings in the `configuratio
 ```yaml
 # Example configuration.yaml entry
 elero:
-  serial_number: 00000000
-  baudrate: 9600
+  transmitters:
+    - serial_number: 00000000
+      baudrate: 9600
+    - serial_number: B1234567
+      device_path: /dev/serial/by-id/usb-Elero_Transmitter_Stick-if00
+      baudrate: 38400
+      bytesize: 8
+      parity: 'N'
+      stopbits: 1
 ```
 
 
