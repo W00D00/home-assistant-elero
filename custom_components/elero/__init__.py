@@ -38,6 +38,7 @@ CONF_BYTESIZE = "bytesize"
 CONF_PARITY = "parity"
 CONF_STOPBITS = "stopbits"
 CONF_TRANSMITTER_SERIAL_NUMBER = "serial_number"
+CONF_DEVICE_PATH = "device_path"
 CONF_TRANSMITTERS = "transmitters"
 CONF_REMOTE_TRANSMITTERS = "remote_transmitters"
 CONF_REMOTE_TRANSMITTERS_ADDRESS = "address"
@@ -128,6 +129,7 @@ RESPONSE_LENGTH_SEND = 7
 ELERO_TRANSMITTER_SCHEMA = vol.Schema(
     {
         vol.Optional(CONF_TRANSMITTER_SERIAL_NUMBER): str,
+        vol.Optional(CONF_DEVICE_PATH): str,
         vol.Optional(CONF_BAUDRATE, default=DEFAULT_BAUDRATE): cv.positive_int,
         vol.Optional(CONF_BYTESIZE, default=DEFAULT_BYTESIZE): cv.positive_int,
         vol.Optional(CONF_PARITY, default=DEFAULT_PARITY): str,
@@ -189,6 +191,46 @@ class EleroTransmitters(object):
     def discover(self):
         """Discover the local connected Elero Transmitter Sticks."""
 
+        # First, handle manually configured devices
+        if self.config:
+            for transmitter_config in self.config:
+                device_path = transmitter_config.get(CONF_DEVICE_PATH)
+                serial_number = transmitter_config.get(CONF_TRANSMITTER_SERIAL_NUMBER)
+                
+                if device_path:
+                    # Manual device specification
+                    _LOGGER.info(
+                        f"Attempting to connect to manually specified device: "
+                        f"'{device_path}' with serial number: '{serial_number}'"
+                    )
+                    
+                    baudrate = transmitter_config.get(CONF_BAUDRATE, DEFAULT_BAUDRATE)
+                    bytesize = transmitter_config.get(CONF_BYTESIZE, DEFAULT_BYTESIZE)
+                    parity = transmitter_config.get(CONF_PARITY, DEFAULT_PARITY)
+                    stopbits = transmitter_config.get(CONF_STOPBITS, DEFAULT_STOPBITS)
+                    
+                    elero_transmitter = EleroTransmitter(
+                        device_path, serial_number, baudrate, bytesize, parity, stopbits
+                    )
+                    elero_transmitter.init_serial()
+                    
+                    if elero_transmitter.get_transmitter_state():
+                        if serial_number not in self.transmitters:
+                            self.transmitters[serial_number] = elero_transmitter
+                            _LOGGER.info(
+                                f"Successfully connected to manually specified device: "
+                                f"'{device_path}' with serial number: '{serial_number}'"
+                            )
+                        else:
+                            _LOGGER.error(
+                                f"'{serial_number}' transmitter is already added!"
+                            )
+                    else:
+                        _LOGGER.error(
+                            f"Failed to connect to manually specified device: '{device_path}'"
+                        )
+
+        # Then, handle automatic discovery for devices not manually configured
         for cp in list_ports.comports():
             found_elero_stick = True if (
                 cp and cp.manufacturer
@@ -215,6 +257,7 @@ class EleroTransmitters(object):
                 # use discovered serial number
                 if found_elero_stick:
                     elero_serial_number = cp.serial_number
+                
                 _LOGGER.info(
                     f"Elero Transmitter Stick is found on port: "
                     f"'{cp.device}' with serial number: '{elero_serial_number}'."
